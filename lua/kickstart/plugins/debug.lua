@@ -13,6 +13,8 @@ vim.pack.add {
   'https://github.com/mason-org/mason.nvim',
   'https://github.com/jay-babu/mason-nvim-dap.nvim',
   'https://github.com/leoluz/nvim-dap-go',
+  'https://github.com/igorlfs/nvim-dap-view',
+  'https://github.com/theHamsta/nvim-dap-virtual-text'
 }
 
 -- Basic debugging keymaps, feel free to change to your liking!
@@ -42,6 +44,7 @@ require('mason-nvim-dap').setup {
   ensure_installed = {
     -- Update this to ensure that you have the debuggers for the langs you want
     'delve',
+    'netcoredbg'
   },
 }
 
@@ -93,3 +96,53 @@ require('dap-go').setup {
     detached = vim.fn.has 'win32' == 0,
   },
 }
+
+-- .NET (C#) debug configuration using netcoredbg
+dap.adapters.coreclr = {
+  type = 'executable',
+  command = vim.fn.stdpath 'data' .. '/mason/bin/netcoredbg',
+  args = { '--interpreter=vscode' },
+}
+
+-- Alias so both 'cs' and 'fsharp' filetype work
+dap.adapters.netcoredbg = dap.adapters.coreclr
+
+dap.configurations.cs = {
+  {
+    type = 'coreclr',
+    name = 'Launch (netcoredbg)',
+    request = 'launch',
+    -- Finds the .dll built by `dotnet build` automatically.
+    -- Falls back to asking the user if it can't find one.
+    program = function()
+      local cwd = vim.fn.getcwd()
+      -- Look for the project dll inside bin/Debug
+      local dlls = vim.fn.glob(cwd .. '/bin/Debug/**/*.dll', true, true)
+      -- Filter out test runners and other noise
+      dlls = vim.tbl_filter(function(f)
+        return not f:match 'testhost' and not f:match 'Microsoft' and not f:match 'xunit'
+      end, dlls)
+      if #dlls == 1 then
+        return dlls[1]
+      elseif #dlls > 1 then
+        return vim.fn.input('Path to dll: ', dlls[1], 'file')
+      end
+      return vim.fn.input('Path to dll: ', cwd .. '/bin/Debug/', 'file')
+    end,
+    cwd = '${workspaceFolder}',
+    stopAtEntry = false,
+    console = 'internalConsole',
+    env = {
+      ASPNETCORE_ENVIRONMENT = 'Development',
+    },
+  },
+  {
+    type = 'coreclr',
+    name = 'Attach to process',
+    request = 'attach',
+    processId = require('dap.utils').pick_process,
+  },
+}
+
+-- Reuse the same configs for F#
+dap.configurations.fsharp = dap.configurations.cs
