@@ -250,7 +250,7 @@ do
   vim.api.nvim_create_autocmd('TextYankPost', {
     desc = 'Highlight when yanking (copying) text',
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-    callback = function() vim.hl.hl_op() end,
+    callback = function() vim.hl.hl_op({higroup='Visual', timeout=200}) end,
   })
 end
 
@@ -390,26 +390,106 @@ do
   -- Load the colorscheme here.
   -- Like many other themes, this one has different styles, and you could load
   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
--- vim.api.nvim_create_autocmd("ColorScheme", {
---   pattern = "habamax",
---   callback = function()
---     -- Style the common floating window borders
---     vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#737373", bg = "none" })
---
---     -- Specifically target Snacks Picker borders and backgrounds
---     vim.api.nvim_set_hl(0, "SnacksPickerBorder", { fg = "#737373", bg = "#000000" })
---     vim.api.nvim_set_hl(0, "SnacksNormal", { bg = "#000000" })
---     vim.api.nvim_set_hl(0, "SnacksNormalNC", { bg = "#000000" })
---     vim.api.nvim_set_hl(0, "SnacksPicker", { bg = "#000000" })
---     vim.api.nvim_set_hl(0, "SnacksPickerInput", { bg = "#000000" })
---
---     -- Style general UI split borders to match habamax's muted aesthetic
---     vim.api.nvim_set_hl(0, "WinSeparator", { fg = "#3a3a3a", bg = "none" })
---   end,
--- })
-vim.pack.add{gh 'WTFox/luna.nvim'}
--- Load the colorscheme
-vim.cmd("colorscheme luna")
+  -- vim.api.nvim_create_autocmd("ColorScheme", {
+  --   pattern = "habamax",
+  --   callback = function()
+  --     -- Style the common floating window borders
+  --     vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#737373", bg = "none" })
+  --
+  --     -- Specifically target Snacks Picker borders and backgrounds
+  --     vim.api.nvim_set_hl(0, "SnacksPickerBorder", { fg = "#737373", bg = "#000000" })
+  --     vim.api.nvim_set_hl(0, "SnacksNormal", { bg = "#000000" })
+  --     vim.api.nvim_set_hl(0, "SnacksNormalNC", { bg = "#000000" })
+  --     vim.api.nvim_set_hl(0, "SnacksPicker", { bg = "#000000" })
+  --     vim.api.nvim_set_hl(0, "SnacksPickerInput", { bg = "#000000" })
+  --
+  --     -- Style general UI split borders to match habamax's muted aesthetic
+  --     vim.api.nvim_set_hl(0, "WinSeparator", { fg = "#3a3a3a", bg = "none" })
+  --   end,
+  -- })
+  vim.pack.add { gh 'rose-pine/neovim' }
+
+  require('rose-pine').setup {
+    variant = 'auto', -- auto, main, moon, or dawn
+    dark_variant = 'main', -- main, moon, or dawn
+    dim_inactive_windows = true,
+    extend_background_behind_borders = true,
+
+    enable = {
+      terminal = true,
+      legacy_highlights = true, -- Improve compatibility for previous versions of Neovim
+      migrations = true, -- Handle deprecated options automatically
+    },
+
+    styles = {
+      bold = true,
+      italic = false,
+      transparency = false,
+    },
+
+    groups = {
+      border = 'muted',
+      link = 'iris',
+      panel = 'surface',
+
+      error = 'love',
+      hint = 'iris',
+      info = 'foam',
+      note = 'pine',
+      todo = 'rose',
+      warn = 'gold',
+
+      git_add = 'foam',
+      git_change = 'rose',
+      git_delete = 'love',
+      git_dirty = 'rose',
+      git_ignore = 'muted',
+      git_merge = 'iris',
+      git_rename = 'pine',
+      git_stage = 'iris',
+      git_text = 'rose',
+      git_untracked = 'subtle',
+
+      h1 = 'iris',
+      h2 = 'foam',
+      h3 = 'rose',
+      h4 = 'gold',
+      h5 = 'pine',
+      h6 = 'foam',
+    },
+
+    palette = {
+      -- Override the builtin palette per variant
+      -- moon = {
+      --     base = '#18191a',
+      --     overlay = '#363738',
+      -- },
+    },
+
+    -- NOTE: Highlight groups are extended (merged) by default. Disable this
+    -- per group via `inherit = false`
+    highlight_groups = {
+      Comment = { fg = 'foam' },
+      StatusLine = { fg = 'love', bg = 'love', blend = 15 },
+      VertSplit = { fg = 'muted', bg = 'muted' },
+      Visual = { fg = 'base', bg = 'text', inherit = false },
+    },
+
+    before_highlight = function(group, highlight, palette)
+      -- Disable all undercurls
+      -- if highlight.undercurl then
+      --     highlight.undercurl = false
+      -- end
+      --
+      -- Change palette colour
+      -- if highlight.fg == palette.pine then
+      --     highlight.fg = palette.foam
+      -- end
+    end,
+  }
+
+  -- Load the colorscheme
+  vim.cmd 'colorscheme rose-pine'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
@@ -492,17 +572,17 @@ do
 
     -- Disable snacks modules we are not using here
     -- (they can be enabled later as needed)
-    bigfile    = { enabled = false },
-    dashboard  = { enabled = false },
-    explorer   = { enabled = false },
-    indent     = { enabled = false },
-    input      = { enabled = false },
-    notifier   = { enabled = false },
-    quickfile  = { enabled = false },
-    scope      = { enabled = false },
-    scroll     = { enabled = false },
+    bigfile = { enabled = false },
+    dashboard = { enabled = false },
+    explorer = { enabled = false },
+    indent = { enabled = false },
+    input = { enabled = false },
+    notifier = { enabled = false },
+    quickfile = { enabled = false },
+    scope = { enabled = false },
+    scroll = { enabled = false },
     statuscolumn = { enabled = false },
-    words      = { enabled = false },
+    words = { enabled = false },
   }
 
   vim.keymap.set('n', '<leader>sh', function() Snacks.picker.help() end, { desc = '[S]earch [H]elp' })
@@ -515,8 +595,12 @@ do
   vim.keymap.set('n', '<leader>sr', function() Snacks.picker.resume() end, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', function() Snacks.picker.recent() end, { desc = '[S]earch Recent Files ("." for repeat)' })
   vim.keymap.set('n', '<leader>sc', function() Snacks.picker.commands() end, { desc = '[S]earch [C]ommands' })
+  vim.keymap.set('n', '<leader>sp', function() Snacks.picker.projects() end, { desc = 'Projects' })
   vim.keymap.set('n', '<leader><leader>', function() Snacks.picker.buffers() end, { desc = '[ ] Find existing buffers' })
-
+  vim.keymap.set('n', '<leader>sm', function() Snacks.picker.marks() end, { desc = '[S]earch [M]arks' })
+  vim.keymap.set('n', '<leader>sl', function() Snacks.picker.loclist() end, { desc = '[S]earch [L]ocation List' })
+  vim.keymap.set('n', '<leader>sq', function() Snacks.picker.qflist() end, { desc = '[S]earch [Q]uickfix List' })
+  vim.keymap.set('n', '<leader>s"', function() Snacks.picker.registers() end, { desc = '[S]earch [R]egisters' })
   -- Add snacks.picker LSP pickers when an LSP attaches to a buffer.
   -- If you later switch picker plugins, this is where to update these mappings.
   vim.api.nvim_create_autocmd('LspAttach', {
@@ -555,14 +639,15 @@ do
   vim.keymap.set('n', '<leader>/', function() Snacks.picker.lines() end, { desc = '[/] Fuzzily search in current buffer' })
 
   -- Search by grep only in open buffers
-  vim.keymap.set('n', '<leader>s/', function()
-    Snacks.picker.grep { open_buffers = true, title = 'Live Grep in Open Files' }
-  end, { desc = '[S]earch [/] in Open Files' })
+  vim.keymap.set(
+    'n',
+    '<leader>s/',
+    function() Snacks.picker.grep { open_buffers = true, title = 'Live Grep in Open Files' } end,
+    { desc = '[S]earch [/] in Open Files' }
+  )
 
   -- Shortcut for searching your Neovim configuration files
-  vim.keymap.set('n', '<leader>sn', function()
-    Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true }
-  end, { desc = '[S]earch [N]eovim files' })
+  vim.keymap.set('n', '<leader>sn', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true } end, { desc = '[S]earch [N]eovim files' })
 end
 
 -- ============================================================
@@ -686,7 +771,14 @@ do
 
     stylua = {}, -- Used to format Lua code
 
+    marksman = {},
     roslyn_ls = {},
+    tinymist = {
+      single_file_support = true, -- Fixes LSP attachment in non-Git directories
+      settings = {
+        formatterMode = 'typstyle',
+      },
+    },
     -- Special Lua Config, as recommended by neovim help docs
     lua_ls = {
       on_init = function(client)
@@ -809,8 +901,8 @@ do
   --    See the README about individual language/framework/plugin snippets:
   --    https://github.com/rafamadriz/friendly-snippets
   --
-  -- vim.pack.add { gh 'rafamadriz/friendly-snippets' }
-  -- require('luasnip.loaders.from_vscode').lazy_load()
+  vim.pack.add { gh 'rafamadriz/friendly-snippets' }
+  require('luasnip.loaders.from_vscode').lazy_load()
 
   -- [[ Autocomplete Engine ]]
   vim.pack.add { { src = gh 'saghen/blink.cmp', version = vim.version.range '1.*' } }

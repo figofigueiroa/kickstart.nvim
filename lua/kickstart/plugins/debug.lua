@@ -47,7 +47,14 @@ require('mason-nvim-dap').setup {
     'netcoredbg'
   },
 }
-
+require('dap-view').setup {
+   winbar = {
+      controls = {
+        enabled = true,
+        position = "left", -- ou "right"
+      },
+    },
+}
 -- -- Dap UI setup
 -- -- For more information, see |:help nvim-dap-ui|
 -- ---@diagnostic disable-next-line: missing-fields
