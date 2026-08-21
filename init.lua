@@ -211,7 +211,20 @@ do
   }
 
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+  -- location list
+  vim.keymap.set('n', '<leader>xl', function()
+    local success, err = pcall(vim.fn.getloclist(0, { winid = 0 }).winid ~= 0 and vim.cmd.lclose or vim.cmd.lopen)
+    if not success and err then vim.notify(err, vim.log.levels.ERROR) end
+  end, { desc = 'Location List' })
 
+  -- quickfix list
+  vim.keymap.set('n', '<leader>xq', function()
+    local success, err = pcall(vim.fn.getqflist({ winid = 0 }).winid ~= 0 and vim.cmd.cclose or vim.cmd.copen)
+    if not success and err then vim.notify(err, vim.log.levels.ERROR) end
+  end, { desc = 'Quickfix List' })
+  vim.keymap.set('n', '[q', vim.cmd.cprev, { desc = 'Previous Quickfix' })
+  vim.keymap.set('n', ']q', vim.cmd.cnext, { desc = 'Next Quickfix' })
+  vim.keymap.set('n', '<leader>T', '<cmd>terminal<CR>', { desc = 'Terminal (cwd)' })
   -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
   -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
   -- is not what someone will guess without a bit more experience.
@@ -234,7 +247,61 @@ do
   vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
   vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
   vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+  -- Resize window using <ctrl> arrow keys
+  vim.keymap.set('n', '<C-Up>', '<cmd>resize +2<cr>', { desc = 'Increase Window Height' })
+  vim.keymap.set('n', '<C-Down>', '<cmd>resize -2<cr>', { desc = 'Decrease Window Height' })
+  vim.keymap.set('n', '<C-Left>', '<cmd>vertical resize -2<cr>', { desc = 'Decrease Window Width' })
+  vim.keymap.set('n', '<C-Right>', '<cmd>vertical resize +2<cr>', { desc = 'Increase Window Width' })
 
+  -- buffers
+  vim.keymap.set('n', '<S-h>', '<cmd>bprevious<cr>', { desc = 'Prev Buffer' })
+  vim.keymap.set('n', '<S-l>', '<cmd>bnext<cr>', { desc = 'Next Buffer' })
+  vim.keymap.set('n', '[b', '<cmd>bprevious<cr>', { desc = 'Prev Buffer' })
+  vim.keymap.set('n', ']b', '<cmd>bnext<cr>', { desc = 'Next Buffer' })
+  vim.keymap.set('n', '<leader>bb', '<cmd>e #<cr>', { desc = 'Switch to Other Buffer' })
+  vim.keymap.set('n', '<leader>`', '<cmd>e #<cr>', { desc = 'Switch to Other Buffer' })
+  vim.keymap.set('n', '<leader>bd', function() Snacks.bufdelete() end, { desc = 'Delete Buffer' })
+  vim.keymap.set('n', '<leader>bo', function() Snacks.bufdelete.other() end, { desc = 'Delete Other Buffers' })
+  vim.keymap.set('n', '<leader>bi', function() Snacks.bufdelete.invisible() end, { desc = 'Delete Invisible Buffers' })
+  vim.keymap.set('n', '<leader>bD', '<cmd>:bd<cr>', { desc = 'Delete Buffer and Window' })
+  vim.keymap.set('n', '<leader>ur', '<Cmd>nohlsearch<Bar>diffupdate<Bar>normal! <C-L><CR>', { desc = 'Redraw / Clear hlsearch / Diff Update' })
+  -- https://github.com/mhinz/vim-galore#saner-behavior-of-n-and-n
+  vim.keymap.set('n', 'n', "'Nn'[v:searchforward].'zv'", { expr = true, desc = 'Next Search Result' })
+  vim.keymap.set('x', 'n', "'Nn'[v:searchforward]", { expr = true, desc = 'Next Search Result' })
+  vim.keymap.set('o', 'n', "'Nn'[v:searchforward]", { expr = true, desc = 'Next Search Result' })
+  vim.keymap.set('n', 'N', "'nN'[v:searchforward].'zv'", { expr = true, desc = 'Prev Search Result' })
+  vim.keymap.set('x', 'N', "'nN'[v:searchforward]", { expr = true, desc = 'Prev Search Result' })
+  vim.keymap.set('o', 'N', "'nN'[v:searchforward]", { expr = true, desc = 'Prev Search Result' })
+  -- save file
+  vim.keymap.set({ 'i', 'x', 'n', 's' }, '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
+
+  --keywordprg
+  vim.keymap.set('n', '<leader>K', '<cmd>norm! K<cr>', { desc = 'Keywordprg' })
+
+  -- better indenting
+  vim.keymap.set('x', '<', '<gv')
+  vim.keymap.set('x', '>', '>gv')
+  -- commenting
+  vim.keymap.set('n', 'gco', 'o<esc>Vcx<esc><cmd>normal gcc<cr>fxa<bs>', { desc = 'Add Comment Below' })
+  vim.keymap.set('n', 'gcO', 'O<esc>Vcx<esc><cmd>normal gcc<cr>fxa<bs>', { desc = 'Add Comment Above' })
+
+  -- diagnostic
+  local diagnostic_goto = function(next, severity)
+    return function()
+      vim.diagnostic.jump {
+        count = (next and 1 or -1) * vim.v.count1,
+        severity = severity and vim.diagnostic.severity[severity] or nil,
+        float = true,
+      }
+    end
+  end
+  vim.keymap.set('n', '<leader>cd', vim.diagnostic.open_float, { desc = 'Line Diagnostics' })
+  vim.keymap.set('n', ']d', diagnostic_goto(true), { desc = 'Next Diagnostic' })
+  vim.keymap.set('n', '[d', diagnostic_goto(false), { desc = 'Prev Diagnostic' })
+  vim.keymap.set('n', ']e', diagnostic_goto(true, 'ERROR'), { desc = 'Next Error' })
+  vim.keymap.set('n', '[e', diagnostic_goto(false, 'ERROR'), { desc = 'Prev Error' })
+  vim.keymap.set('n', ']w', diagnostic_goto(true, 'WARN'), { desc = 'Next Warning' })
+  vim.keymap.set('n', '[w', diagnostic_goto(false, 'WARN'), { desc = 'Prev Warning' })
   -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
   -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
   -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -250,7 +317,7 @@ do
   vim.api.nvim_create_autocmd('TextYankPost', {
     desc = 'Highlight when yanking (copying) text',
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-    callback = function() vim.hl.hl_op({higroup='Visual', timeout=200}) end,
+    callback = function() vim.hl.hl_op { higroup = 'Visual', timeout = 200 } end,
   })
 end
 
@@ -369,7 +436,15 @@ do
       { '<leader>t', group = '[T]oggle' },
       { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
       { '<leader>a', group = '[A]i', mode = { 'n', 'v' } },
-      { 'gr', group = 'LSP Actions', mode = { 'n' } },
+      { '<leader>b', group = '[B]uffer', mode = { 'n', 'v' } },
+      { '<leader>x', group = 'Quickfi[X]', mode = { 'n', 'v' } },
+      { '<leader>d', group = '[D]ebugger', mode = { 'n', 'v' } },
+      { '<leader>u', group = '[U]i Toggles', mode = { 'n', 'v' } },
+      { '<leader>c', group = '[C]ode Actions', mode = { 'n', 'v' } },
+      { '<leader>R', group = '[R]est', mode = { 'n', 'v' } },
+      { '<leader>r', group = '[R]efactor', mode = { 'n', 'v' } },
+      { '<leader>T', group = '[T]erminal', mode = { 'n', 'v' } },
+      { '<leader>g', group = '[G]it', mode = { 'n', 'v' } },
     },
   }
 
@@ -601,6 +676,22 @@ do
   vim.keymap.set('n', '<leader>sl', function() Snacks.picker.loclist() end, { desc = '[S]earch [L]ocation List' })
   vim.keymap.set('n', '<leader>sq', function() Snacks.picker.qflist() end, { desc = '[S]earch [Q]uickfix List' })
   vim.keymap.set('n', '<leader>s"', function() Snacks.picker.registers() end, { desc = '[S]earch [R]egisters' })
+
+  vim.keymap.set('n', '<leader>gL', function() Snacks.picker.git_log() end, { desc = 'Git Log (cwd)' })
+  vim.keymap.set('n', '<leader>gb', function() Snacks.picker.git_log_line() end, { desc = 'Git Blame Line' })
+  vim.keymap.set('n', '<leader>gf', function() Snacks.picker.git_log_file() end, { desc = 'Git Current File History' })
+  Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>us'
+  Snacks.toggle.option('wrap', { name = 'Wrap' }):map '<leader>uw'
+  Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):map '<leader>uL'
+  Snacks.toggle.diagnostics():map '<leader>ud'
+  Snacks.toggle.line_number():map '<leader>ul'
+  Snacks.toggle.option('conceallevel', { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2, name = 'Conceal Level' }):map '<leader>uc'
+  Snacks.toggle.treesitter():map '<leader>uT'
+  Snacks.toggle.dim():map '<leader>uD'
+  Snacks.toggle.indent():map '<leader>ug'
+  Snacks.toggle.scroll():map '<leader>uS'
+  Snacks.toggle.profiler():map '<leader>dpp'
+  Snacks.toggle.profiler_highlights():map '<leader>dph'
   -- Add snacks.picker LSP pickers when an LSP attaches to a buffer.
   -- If you later switch picker plugins, this is where to update these mappings.
   vim.api.nvim_create_autocmd('LspAttach', {
@@ -882,7 +973,7 @@ do
     },
   }
 
-  vim.keymap.set({ 'n', 'v' }, '<leader>f', function() require('conform').format { async = true } end, { desc = '[F]ormat buffer' })
+  vim.keymap.set({ 'n', 'v' }, '<leader>cf', function() require('conform').format { async = true } end, { desc = '[C]onform [F]ormat buffer' })
 end
 
 -- ============================================================
