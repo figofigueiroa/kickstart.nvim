@@ -6,7 +6,8 @@ vim.pack.add {
   Gh 'nvim-lua/plenary.nvim',
   Gh 'MunifTanjim/nui.nvim',
   Gh 'MeanderingProgrammer/render-markdown.nvim',
-  { src = Gh 'yetone/avante.nvim', version = vim.version.range '*' },
+  { src = Gh 'yetone/avante.nvim', version = vim.version.range '*',
+    build = 'powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false' },
 }
 
 later(function()
