@@ -1,6 +1,7 @@
 vim.pack.add {
-	'https://github.com/zbirenbaum/copilot.lua'
+  Gh 'zbirenbaum/copilot.lua'
 }
 
-
-require('copilot').setup()
+on_event('InsertEnter', function()
+  require('copilot').setup()
+end)

@@ -1,5 +1,8 @@
 -- autopairs
 -- https://github.com/windwp/nvim-autopairs
 
-vim.pack.add { 'https://github.com/windwp/nvim-autopairs' }
-require('nvim-autopairs').setup {}
+vim.pack.add { Gh 'windwp/nvim-autopairs' }
+
+on_event('InsertEnter', function()
+  require('nvim-autopairs').setup {}
+end)

@@ -386,7 +386,7 @@ end
 ---function to have less repetition in the following sections.
 ---@param repo string
 ---@return string
-local function gh(repo) return 'https://github.com/' .. repo end
+function Gh(repo) return 'https://github.com/' .. repo end
 
 -- ============================================================
 -- SECTION 4: UI / CORE UX PLUGINS
@@ -400,20 +400,37 @@ do
   -- You can also have more advanced specs, which we will talk about later.
   --
   -- For most plugins its not enough to install them, you also need to call their `.setup()` to start them.
-  --
+
+  -- [[ mini.nvim ]]
+  --  A collection of various small independent plugins/modules
+  --  Loaded first so that `later` and `on_event` helpers are available to all plugins below.
+  vim.pack.add { Gh 'nvim-mini/mini.nvim' }
+  local misc = require 'mini.misc'
+  later = function(f) misc.safely('later', f) end
+  on_event = function(ev, f) misc.safely('event:' .. ev, f) end
+
+  -- If a nerd font is available, load the icons module for pretty icons in various plugins.
+  if vim.g.have_nerd_font then
+    require('mini.icons').setup()
+    -- Used for backwards compatibility with plugins that require `nvim-web-devicons` (e.g. telescope.nvim)
+    MiniIcons.mock_nvim_web_devicons()
+  end
+
   -- For example, lets say we want to install `guess-indent.nvim` - a plugin for
   -- automatically detecting and setting the indentation.
   --
   -- We first install it from https://github.com/NMAC427/guess-indent.nvim
   -- and then call its `setup()` function to start it with default settings.
-  vim.pack.add { gh 'NMAC427/guess-indent.nvim' }
-  require('guess-indent').setup {}
+  vim.pack.add { Gh 'NMAC427/guess-indent.nvim' }
+  later(function()
+    require('guess-indent').setup {}
+  end)
 
   -- Here is a more advanced configuration example that passes options to `gitsigns.nvim`
   --
   -- See `:help gitsigns` to understand what each configuration key does.
   -- Adds git related signs to the gutter, as well as utilities for managing changes
-  vim.pack.add { gh 'lewis6991/gitsigns.nvim' }
+  vim.pack.add { Gh 'lewis6991/gitsigns.nvim' }
   require('gitsigns').setup {
     signs = {
       add = { text = '+' }, ---@diagnostic disable-line: missing-fields
@@ -425,7 +442,8 @@ do
   }
 
   -- Useful plugin to show you pending keybinds.
-  vim.pack.add { gh 'folke/which-key.nvim' }
+  vim.pack.add { Gh 'folke/which-key.nvim' }
+  later(function()
   require('which-key').setup {
     -- Delay between pressing a key and opening which-key (milliseconds)
     delay = 0,
@@ -447,6 +465,7 @@ do
       { '<leader>g', group = '[G]it', mode = { 'n', 'v' } },
     },
   }
+  end) -- later which-key
 
   -- [[ Colorscheme ]]
   -- You can easily change to a different colorscheme.
@@ -482,7 +501,7 @@ do
   --     vim.api.nvim_set_hl(0, "WinSeparator", { fg = "#3a3a3a", bg = "none" })
   --   end,
   -- })
-  vim.pack.add { gh 'rose-pine/neovim' }
+  vim.pack.add { Gh 'rose-pine/neovim' }
 
   require('rose-pine').setup {
     variant = 'auto', -- auto, main, moon, or dawn
@@ -543,12 +562,12 @@ do
 
     -- NOTE: Highlight groups are extended (merged) by default. Disable this
     -- per group via `inherit = false`
-    highlight_groups = {
-      Comment = { fg = 'foam' },
-      StatusLine = { fg = 'love', bg = 'love', blend = 15 },
-      VertSplit = { fg = 'muted', bg = 'muted' },
-      Visual = { fg = 'base', bg = 'text', inherit = false },
-    },
+    -- highlight_groups = {
+    --   Comment = { fg = 'foam' },
+    --   StatusLine = { fg = 'love', bg = 'love', blend = 15 },
+    --   VertSplit = { fg = 'muted', bg = 'muted' },
+    --   Visual = { fg = 'base', bg = 'text', inherit = false },
+    -- },
 
     before_highlight = function(group, highlight, palette)
       -- Disable all undercurls
@@ -567,19 +586,10 @@ do
   vim.cmd 'colorscheme rose-pine'
 
   -- Highlight todo, notes, etc in comments
-  vim.pack.add { gh 'folke/todo-comments.nvim' }
-  require('todo-comments').setup { signs = false }
-
-  -- [[ mini.nvim ]]
-  --  A collection of various small independent plugins/modules
-  vim.pack.add { gh 'nvim-mini/mini.nvim' }
-
-  -- If a nerd font is available, load the icons module for pretty icons in various plugins.
-  if vim.g.have_nerd_font then
-    require('mini.icons').setup()
-    -- Used for backwards compatibility with plugins that require `nvim-web-devicons` (e.g. telescope.nvim)
-    MiniIcons.mock_nvim_web_devicons()
-  end
+  vim.pack.add { Gh 'folke/todo-comments.nvim' }
+  later(function()
+    require('todo-comments').setup { signs = false }
+  end)
 
   -- Better Around/Inside textobjects
   --
@@ -601,7 +611,21 @@ do
   -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
   -- - sd'   - [S]urround [D]elete [']quotes
   -- - sr)'  - [S]urround [R]eplace [)] [']
-  require('mini.surround').setup()
+  on_event('InsertEnter', function()
+    require('mini.surround').setup {
+      mappings = {
+        add = 'gsa', -- Add surrounding in Normal and Visual modes
+        delete = 'gsd', -- Delete surrounding
+        find = 'gsf', -- Find surrounding (to the right)
+        find_left = 'gsF', -- Find surrounding (to the left)
+        highlight = 'gsh', -- Highlight surrounding
+        replace = 'gsr', -- Replace surrounding
+
+        suffix_last = 'l', -- Suffix to search with "prev" method
+        suffix_next = 'n', -- Suffix to search with "next" method
+      },
+    }
+  end)
 
   -- Simple and easy statusline.
   --  You could remove this setup call if you don't like it,
@@ -637,7 +661,7 @@ do
   --
   -- These open a help window showing all available keymaps for the picker.
 
-  vim.pack.add { gh 'folke/snacks.nvim' }
+  vim.pack.add { Gh 'folke/snacks.nvim' }
 
   -- See `:help snacks.nvim` and `:help snacks-picker`
   require('snacks').setup {
@@ -647,13 +671,13 @@ do
 
     -- Disable snacks modules we are not using here
     -- (they can be enabled later as needed)
-    bigfile = { enabled = false },
+    bigfile = { enabled = true },
     dashboard = { enabled = false },
     explorer = { enabled = false },
     indent = { enabled = false },
     input = { enabled = false },
     notifier = { enabled = false },
-    quickfile = { enabled = false },
+    quickfile = { enabled = true },
     scope = { enabled = false },
     scroll = { enabled = false },
     statuscolumn = { enabled = false },
@@ -773,8 +797,10 @@ do
   -- and elegantly composed help section, `:help lsp-vs-treesitter`
 
   -- Useful status updates for LSP.
-  vim.pack.add { gh 'j-hui/fidget.nvim' }
-  require('fidget').setup {}
+  vim.pack.add { Gh 'j-hui/fidget.nvim' }
+  later(function()
+    require('fidget').setup {}
+  end)
 
   --  This function gets run when an LSP attaches to a particular buffer.
   --    That is to say, every time a new file is opened that is associated with
@@ -870,29 +896,13 @@ do
         formatterMode = 'typstyle',
       },
     },
-    -- Special Lua Config, as recommended by neovim help docs
+    -- lua_ls: workspace.library is intentionally omitted.
+    -- lazydev.nvim (custom/plugins/lazydev.lua) handles library injection
+    -- lazily per-buffer, which avoids the slow full-workspace scan and the
+    -- duplicate-loading bug from nvim_get_runtime_file('', true).
     lua_ls = {
       on_init = function(client)
         client.server_capabilities.documentFormattingProvider = false -- Disable formatting (formatting is done by stylua)
-
-        if client.workspace_folders then
-          local path = client.workspace_folders[1].name
-          if path ~= vim.fn.stdpath 'config' and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc')) then return end
-        end
-
-        local current_settings = client.config.settings --[[@as lspconfig.settings.lua_ls]]
-        client.config.settings.Lua = vim.tbl_deep_extend('force', current_settings.Lua, {
-          runtime = {
-            version = 'LuaJIT',
-            path = { 'lua/?.lua', 'lua/?/init.lua' },
-          },
-          workspace = {
-            checkThirdParty = false,
-            -- NOTE: this is a lot slower and will cause issues when working on your own configuration.
-            --  See https://github.com/neovim/nvim-lspconfig/issues/3189
-            library = vim.api.nvim_get_runtime_file('', true),
-          },
-        })
       end,
       ---@type lspconfig.settings.lua_ls
       settings = {
@@ -904,38 +914,40 @@ do
   }
 
   vim.pack.add {
-    gh 'neovim/nvim-lspconfig',
-    gh 'mason-org/mason.nvim',
-    gh 'mason-org/mason-lspconfig.nvim',
-    gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
+    Gh 'neovim/nvim-lspconfig',
+    Gh 'mason-org/mason.nvim',
+    Gh 'mason-org/mason-lspconfig.nvim',
+    Gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
   }
 
-  -- Automatically install LSPs and related tools to stdpath for Neovim
-  require('mason').setup {}
+  later(function()
+    -- Automatically install LSPs and related tools to stdpath for Neovim
+    require('mason').setup {}
 
-  -- Translates between nvim-lspconfig server names and mason.nvim package names (e.g. lua_ls <-> lua-language-server)
-  require('mason-lspconfig').setup {
-    automatic_enable = false, -- Change this to true if you want to automatically enable servers that are installed manually (e.g. via :Mason / :MasonInstall)
-  }
+    -- Translates between nvim-lspconfig server names and mason.nvim package names (e.g. lua_ls <-> lua-language-server)
+    require('mason-lspconfig').setup {
+      automatic_enable = false, -- Change this to true if you want to automatically enable servers that are installed manually (e.g. via :Mason / :MasonInstall)
+    }
 
-  -- Ensure the servers and tools above are installed
-  --
-  -- To check the current status of installed tools and/or manually install
-  -- other tools, you can run
-  --    :Mason
-  --
-  -- You can press `g?` for help in this menu.
-  local ensure_installed = vim.tbl_keys(servers or {})
-  vim.list_extend(ensure_installed, {
-    -- You can add other tools here that you want Mason to install
-  })
+    -- Ensure the servers and tools above are installed
+    --
+    -- To check the current status of installed tools and/or manually install
+    -- other tools, you can run
+    --    :Mason
+    --
+    -- You can press `g?` for help in this menu.
+    local ensure_installed = vim.tbl_keys(servers or {})
+    vim.list_extend(ensure_installed, {
+      -- You can add other tools here that you want Mason to install
+    })
 
-  require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+    require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-  for name, server in pairs(servers) do
-    vim.lsp.config(name, server)
-    vim.lsp.enable(name)
-  end
+    for name, server in pairs(servers) do
+      vim.lsp.config(name, server)
+      vim.lsp.enable(name)
+    end
+  end)
 end
 
 -- ============================================================
@@ -944,36 +956,40 @@ end
 -- ============================================================
 do
   -- [[ Formatting ]]
-  vim.pack.add { gh 'stevearc/conform.nvim' }
-  require('conform').setup {
-    notify_on_error = false,
-    format_on_save = function(bufnr)
-      -- You can specify filetypes to autoformat on save here:
-      local enabled_filetypes = {
-        -- lua = true,
-        -- python = true,
-      }
-      if enabled_filetypes[vim.bo[bufnr].filetype] then
-        return { timeout_ms = 500 }
-      else
-        return nil
-      end
-    end,
-    default_format_opts = {
-      lsp_format = 'fallback', -- Use external formatters if configured below, otherwise use LSP formatting. Set to `false` to disable LSP formatting entirely.
-    },
-    -- You can also specify external formatters in here.
-    formatters_by_ft = {
-      -- rust = { 'rustfmt' },
-      -- Conform can also run multiple formatters sequentially
-      -- python = { "isort", "black" },
-      --
-      -- You can use 'stop_after_first' to run the first available formatter from the list
-      -- javascript = { "prettierd", "prettier", stop_after_first = true },
-    },
-  }
+  vim.pack.add { Gh 'stevearc/conform.nvim' }
 
+  -- Keymap uses require() lazily, so conform is only loaded when the user actually formats.
   vim.keymap.set({ 'n', 'v' }, '<leader>cf', function() require('conform').format { async = true } end, { desc = '[C]onform [F]ormat buffer' })
+
+  later(function()
+    require('conform').setup {
+      notify_on_error = false,
+      format_on_save = function(bufnr)
+        -- You can specify filetypes to autoformat on save here:
+        local enabled_filetypes = {
+          -- lua = true,
+          -- python = true,
+        }
+        if enabled_filetypes[vim.bo[bufnr].filetype] then
+          return { timeout_ms = 500 }
+        else
+          return nil
+        end
+      end,
+      default_format_opts = {
+        lsp_format = 'fallback', -- Use external formatters if configured below, otherwise use LSP formatting. Set to `false` to disable LSP formatting entirely.
+      },
+      -- You can also specify external formatters in here.
+      formatters_by_ft = {
+        -- rust = { 'rustfmt' },
+        -- Conform can also run multiple formatters sequentially
+        -- python = { "isort", "black" },
+        --
+        -- You can use 'stop_after_first' to run the first available formatter from the list
+        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      },
+    }
+  end)
 end
 
 -- ============================================================
@@ -981,22 +997,27 @@ end
 -- blink.cmp and luasnip setup
 -- ============================================================
 do
-  -- [[ Snippet Engine ]]
+  -- [[ Snippet Engine + Autocomplete Engine ]]
+  -- Loaded on first InsertEnter — nothing here is needed before the user starts typing.
 
   -- NOTE: You can also specify plugin using a version range for its git tag.
   --  See `:help vim.version.range()` for more info
-  vim.pack.add { { src = gh 'L3MON4D3/LuaSnip', version = vim.version.range '2.*' } }
-  require('luasnip').setup {}
+  vim.pack.add { { src = Gh 'L3MON4D3/LuaSnip', version = vim.version.range '2.*' } }
 
   -- `friendly-snippets` contains a variety of premade snippets.
   --    See the README about individual language/framework/plugin snippets:
   --    https://github.com/rafamadriz/friendly-snippets
-  --
-  vim.pack.add { gh 'rafamadriz/friendly-snippets' }
-  require('luasnip.loaders.from_vscode').lazy_load()
+  vim.pack.add { Gh 'rafamadriz/friendly-snippets' }
 
   -- [[ Autocomplete Engine ]]
-  vim.pack.add { { src = gh 'saghen/blink.cmp', version = vim.version.range '1.*' } }
+  vim.pack.add { { src = Gh 'saghen/blink.cmp', version = vim.version.range '1.*' } }
+
+  on_event('InsertEnter', function()
+    require('luasnip').setup {}
+    require('luasnip.loaders.from_vscode').lazy_load()
+  end)
+
+  later(function()
   require('blink.cmp').setup {
     keymap = {
       -- 'default' (recommended) for mappings similar to built-in completions
@@ -1039,7 +1060,14 @@ do
     },
 
     sources = {
-      default = { 'lsp', 'path', 'snippets' },
+      default = { 'lazydev', 'lsp', 'path', 'snippets' },
+      providers = {
+        lazydev = {
+          name = 'LazyDev',
+          module = 'lazydev.integrations.blink',
+          score_offset = 100, -- above lsp, for require("...") completions
+        },
+      },
     },
 
     snippets = { preset = 'luasnip' },
@@ -1056,6 +1084,7 @@ do
     -- Shows a signature help window while you type arguments for a function
     signature = { enabled = true },
   }
+  end) -- later
 end
 
 -- ============================================================
@@ -1069,7 +1098,7 @@ do
   --  See `:help nvim-treesitter-intro`
 
   -- NOTE: You can also specify a branch or a specific commit
-  vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
+  vim.pack.add { { src = Gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
   local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
