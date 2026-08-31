@@ -7,24 +7,25 @@ vim.pack.add {
   Gh 'MunifTanjim/nui.nvim',
 }
 
-vim.keymap.set('n', '\\', '<Cmd>Neotree reveal<CR>', { desc = 'NeoTree reveal', silent = true })
-
 local events = require 'neo-tree.events'
 
 local function on_move(data)
   Snacks.rename.on_rename_file(data.source, data.destination)
 end
 
-require('neo-tree').setup {
-  event_handlers = {
-    { event = events.FILE_MOVED,   handler = on_move },
-    { event = events.FILE_RENAMED, handler = on_move },
-  },
-  filesystem = {
-    window = {
-      mappings = {
-        ['\\'] = 'close_window',
+vim.keymap.set('n', '\\', function()
+  require('neo-tree').setup {
+    event_handlers = {
+      { event = events.FILE_MOVED,   handler = on_move },
+      { event = events.FILE_RENAMED, handler = on_move },
+    },
+    filesystem = {
+      window = {
+        mappings = {
+          ['\\'] = 'close_window',
+        },
       },
     },
-  },
-}
+  }
+  vim.cmd 'Neotree toggle'
+end, { desc = 'Explorer' })

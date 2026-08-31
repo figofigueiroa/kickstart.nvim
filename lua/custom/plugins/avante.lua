@@ -10,7 +10,7 @@ vim.pack.add {
     build = 'powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false' },
 }
 
-later(function()
+Later(function()
   require('render-markdown').setup { file_types = { 'markdown', 'Avante' } }
 
   require('avante').setup {

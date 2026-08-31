@@ -406,8 +406,10 @@ do
   --  Loaded first so that `later` and `on_event` helpers are available to all plugins below.
   vim.pack.add { Gh 'nvim-mini/mini.nvim' }
   local misc = require 'mini.misc'
-  later = function(f) misc.safely('later', f) end
-  on_event = function(ev, f) misc.safely('event:' .. ev, f) end
+  Later = function(f)
+    vim.schedule(function() misc.safely('later', f) end)
+  end
+  On_event = function(ev, f) misc.safely('event:' .. ev, f) end
 
   -- If a nerd font is available, load the icons module for pretty icons in various plugins.
   if vim.g.have_nerd_font then
@@ -422,9 +424,7 @@ do
   -- We first install it from https://github.com/NMAC427/guess-indent.nvim
   -- and then call its `setup()` function to start it with default settings.
   vim.pack.add { Gh 'NMAC427/guess-indent.nvim' }
-  later(function()
-    require('guess-indent').setup {}
-  end)
+  Later(function() require('guess-indent').setup {} end)
 
   -- Here is a more advanced configuration example that passes options to `gitsigns.nvim`
   --
@@ -443,28 +443,29 @@ do
 
   -- Useful plugin to show you pending keybinds.
   vim.pack.add { Gh 'folke/which-key.nvim' }
-  later(function()
-  require('which-key').setup {
-    -- Delay between pressing a key and opening which-key (milliseconds)
-    delay = 0,
-    icons = { mappings = vim.g.have_nerd_font },
-    -- Document existing key chains
-    spec = {
-      { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
-      { '<leader>t', group = '[T]oggle' },
-      { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
-      { '<leader>a', group = '[A]i', mode = { 'n', 'v' } },
-      { '<leader>b', group = '[B]uffer', mode = { 'n', 'v' } },
-      { '<leader>x', group = 'Quickfi[X]', mode = { 'n', 'v' } },
-      { '<leader>d', group = '[D]ebugger', mode = { 'n', 'v' } },
-      { '<leader>u', group = '[U]i Toggles', mode = { 'n', 'v' } },
-      { '<leader>c', group = '[C]ode Actions', mode = { 'n', 'v' } },
-      { '<leader>R', group = '[R]est', mode = { 'n', 'v' } },
-      { '<leader>r', group = '[R]efactor', mode = { 'n', 'v' } },
-      { '<leader>T', group = '[T]erminal', mode = { 'n', 'v' } },
-      { '<leader>g', group = '[G]it', mode = { 'n', 'v' } },
-    },
-  }
+  Later(function()
+    require('which-key').setup {
+      -- Delay between pressing a key and opening which-key (milliseconds)
+      delay = 0,
+      icons = { mappings = vim.g.have_nerd_font },
+      -- Document existing key chains
+      spec = {
+        { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
+        { '<leader>t', group = '[T]oggle' },
+        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
+        { '<leader>a', group = '[A]i', mode = { 'n', 'v' } },
+        { '<leader>b', group = '[B]uffer', mode = { 'n', 'v' } },
+        { '<leader>x', group = 'Quickfi[X]', mode = { 'n', 'v' } },
+        { '<leader>d', group = '[D]ebugger', mode = { 'n', 'v' } },
+        { '<leader>u', group = '[U]i Toggles', mode = { 'n', 'v' } },
+        { '<leader>c', group = '[C]ode Actions', mode = { 'n', 'v' } },
+        { '<leader>R', group = '[R]est', mode = { 'n', 'v' } },
+        { '<leader>r', group = '[R]efactor', mode = { 'n', 'v' } },
+        { '<leader>T', group = '[T]erminal', mode = { 'n', 'v' } },
+        { '<leader>g', group = '[G]it', mode = { 'n', 'v' } },
+        { '<leader>gr', group = 'Lsp Actions', mode = { 'n', 'v' } },
+      },
+    }
   end) -- later which-key
 
   -- [[ Colorscheme ]]
@@ -587,9 +588,7 @@ do
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { Gh 'folke/todo-comments.nvim' }
-  later(function()
-    require('todo-comments').setup { signs = false }
-  end)
+  Later(function() require('todo-comments').setup { signs = false } end)
 
   -- Better Around/Inside textobjects
   --
@@ -606,12 +605,14 @@ do
     n_lines = 500,
   }
 
+  On_event('VimEnter', function() require('mini.statuscolumn').setup() end)
+
   -- Add/delete/replace surroundings (brackets, quotes, etc.)
   --
   -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
   -- - sd'   - [S]urround [D]elete [']quotes
   -- - sr)'  - [S]urround [R]eplace [)] [']
-  on_event('InsertEnter', function()
+  On_event('InsertEnter', function()
     require('mini.surround').setup {
       mappings = {
         add = 'gsa', -- Add surrounding in Normal and Visual modes
@@ -687,7 +688,8 @@ do
   vim.keymap.set('n', '<leader>sh', function() Snacks.picker.help() end, { desc = '[S]earch [H]elp' })
   vim.keymap.set('n', '<leader>sk', function() Snacks.picker.keymaps() end, { desc = '[S]earch [K]eymaps' })
   vim.keymap.set('n', '<leader>sf', function() Snacks.picker.files() end, { desc = '[S]earch [F]iles' })
-  vim.keymap.set('n', '<leader>ss', function() Snacks.picker.pickers() end, { desc = '[S]earch [S]elect Picker' })
+  vim.keymap.set('n', '<leader>ss', function() Snacks.picker.lsp_symbols() end, { desc = 'LSP Symbols' })
+  vim.keymap.set('n', '<leader>sS', function() Snacks.picker.lsp_workspace_symbols() end, { desc = 'LSP Workspace Symbols' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', function() Snacks.picker.grep_word() end, { desc = '[S]earch current [W]ord' })
   vim.keymap.set('n', '<leader>sg', function() Snacks.picker.grep() end, { desc = '[S]earch by [G]rep' })
   vim.keymap.set('n', '<leader>sd', function() Snacks.picker.diagnostics() end, { desc = '[S]earch [D]iagnostics' })
@@ -700,6 +702,8 @@ do
   vim.keymap.set('n', '<leader>sl', function() Snacks.picker.loclist() end, { desc = '[S]earch [L]ocation List' })
   vim.keymap.set('n', '<leader>sq', function() Snacks.picker.qflist() end, { desc = '[S]earch [Q]uickfix List' })
   vim.keymap.set('n', '<leader>s"', function() Snacks.picker.registers() end, { desc = '[S]earch [R]egisters' })
+  vim.keymap.set('n', '<leader>st', function() Snacks.picker.todo_comments() end, { desc = '[S]earch [T]odo Comments' })
+  vim.keymap.set('n', '<leader>sT', function () Snacks.picker.todo_comments({ keywords = { "TODO", "FIX", "FIXME", "NOTE" } }) end, { desc = "Todo/Fix/Fixme" })
 
   vim.keymap.set('n', '<leader>gL', function() Snacks.picker.git_log() end, { desc = 'Git Log (cwd)' })
   vim.keymap.set('n', '<leader>gb', function() Snacks.picker.git_log_line() end, { desc = 'Git Blame Line' })
@@ -747,6 +751,8 @@ do
       -- Useful when you're not sure what type a variable is and you want to see
       -- the definition of its *type*, not where it was *defined*.
       vim.keymap.set('n', 'grt', function() Snacks.picker.lsp_type_definitions() end, { buffer = buf, desc = '[G]oto [T]ype Definition' })
+      vim.keymap.set('n', 'gai', function() Snacks.picker.lsp_incoming_calls() end, { buffer = buf, desc = "C[a]lls Incoming" })
+      vim.keymap.set('n', 'gao', function() Snacks.picker.lsp_outgoing_calls() end, { buffer = buf, desc = "C[a]lls Outgoing" })
     end,
   })
 
@@ -798,9 +804,7 @@ do
 
   -- Useful status updates for LSP.
   vim.pack.add { Gh 'j-hui/fidget.nvim' }
-  later(function()
-    require('fidget').setup {}
-  end)
+  Later(function() require('fidget').setup {} end)
 
   --  This function gets run when an LSP attaches to a particular buffer.
   --    That is to say, every time a new file is opened that is associated with
@@ -920,7 +924,7 @@ do
     Gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
   }
 
-  later(function()
+  Later(function()
     -- Automatically install LSPs and related tools to stdpath for Neovim
     require('mason').setup {}
 
@@ -961,7 +965,7 @@ do
   -- Keymap uses require() lazily, so conform is only loaded when the user actually formats.
   vim.keymap.set({ 'n', 'v' }, '<leader>cf', function() require('conform').format { async = true } end, { desc = '[C]onform [F]ormat buffer' })
 
-  later(function()
+  Later(function()
     require('conform').setup {
       notify_on_error = false,
       format_on_save = function(bufnr)
@@ -1012,78 +1016,78 @@ do
   -- [[ Autocomplete Engine ]]
   vim.pack.add { { src = Gh 'saghen/blink.cmp', version = vim.version.range '1.*' } }
 
-  on_event('InsertEnter', function()
+  On_event('InsertEnter', function()
     require('luasnip').setup {}
     require('luasnip.loaders.from_vscode').lazy_load()
   end)
 
-  later(function()
-  require('blink.cmp').setup {
-    keymap = {
-      -- 'default' (recommended) for mappings similar to built-in completions
-      --   <c-y> to accept ([y]es) the completion.
-      --    This will auto-import if your LSP supports it.
-      --    This will expand snippets if the LSP sent a snippet.
-      -- 'super-tab' for tab to accept
-      -- 'enter' for enter to accept
-      -- 'none' for no mappings
-      --
-      -- For an understanding of why the 'default' preset is recommended,
-      -- you will need to read `:help ins-completion`
-      --
-      -- No, but seriously. Please read `:help ins-completion`, it is really good!
-      --
-      -- All presets have the following mappings:
-      -- <tab>/<s-tab>: move to right/left of your snippet expansion
-      -- <c-space>: Open menu or open docs if already open
-      -- <c-n>/<c-p> or <up>/<down>: Select next/previous item
-      -- <c-e>: Hide menu
-      -- <c-k>: Toggle signature help
-      --
-      -- See `:help blink-cmp-config-keymap` for defining your own keymap
-      preset = 'default',
+  Later(function()
+    require('blink.cmp').setup {
+      keymap = {
+        -- 'default' (recommended) for mappings similar to built-in completions
+        --   <c-y> to accept ([y]es) the completion.
+        --    This will auto-import if your LSP supports it.
+        --    This will expand snippets if the LSP sent a snippet.
+        -- 'super-tab' for tab to accept
+        -- 'enter' for enter to accept
+        -- 'none' for no mappings
+        --
+        -- For an understanding of why the 'default' preset is recommended,
+        -- you will need to read `:help ins-completion`
+        --
+        -- No, but seriously. Please read `:help ins-completion`, it is really good!
+        --
+        -- All presets have the following mappings:
+        -- <tab>/<s-tab>: move to right/left of your snippet expansion
+        -- <c-space>: Open menu or open docs if already open
+        -- <c-n>/<c-p> or <up>/<down>: Select next/previous item
+        -- <c-e>: Hide menu
+        -- <c-k>: Toggle signature help
+        --
+        -- See `:help blink-cmp-config-keymap` for defining your own keymap
+        preset = 'default',
 
-      -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-      --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
-    },
+        -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
+        --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
+      },
 
-    appearance = {
-      -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-      -- Adjusts spacing to ensure icons are aligned
-      nerd_font_variant = 'mono',
-    },
+      appearance = {
+        -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+        -- Adjusts spacing to ensure icons are aligned
+        nerd_font_variant = 'mono',
+      },
 
-    completion = {
-      -- By default, you may press `<c-space>` to show the documentation.
-      -- Optionally, set `auto_show = true` to show the documentation after a delay.
-      documentation = { auto_show = false, auto_show_delay_ms = 500 },
-    },
+      completion = {
+        -- By default, you may press `<c-space>` to show the documentation.
+        -- Optionally, set `auto_show = true` to show the documentation after a delay.
+        documentation = { auto_show = false, auto_show_delay_ms = 500 },
+      },
 
-    sources = {
-      default = { 'lazydev', 'lsp', 'path', 'snippets' },
-      providers = {
-        lazydev = {
-          name = 'LazyDev',
-          module = 'lazydev.integrations.blink',
-          score_offset = 100, -- above lsp, for require("...") completions
+      sources = {
+        default = { 'lazydev', 'lsp', 'path', 'snippets' },
+        providers = {
+          lazydev = {
+            name = 'LazyDev',
+            module = 'lazydev.integrations.blink',
+            score_offset = 100, -- above lsp, for require("...") completions
+          },
         },
       },
-    },
 
-    snippets = { preset = 'luasnip' },
+      snippets = { preset = 'luasnip' },
 
-    -- Blink.cmp includes an optional, recommended rust fuzzy matcher,
-    -- which automatically downloads a prebuilt binary when enabled.
-    --
-    -- By default, we use the Lua implementation instead, but you may enable
-    -- the rust implementation via `'prefer_rust_with_warning'`
-    --
-    -- See `:help blink-cmp-config-fuzzy` for more information
-    fuzzy = { implementation = 'lua' },
+      -- Blink.cmp includes an optional, recommended rust fuzzy matcher,
+      -- which automatically downloads a prebuilt binary when enabled.
+      --
+      -- By default, we use the Lua implementation instead, but you may enable
+      -- the rust implementation via `'prefer_rust_with_warning'`
+      --
+      -- See `:help blink-cmp-config-fuzzy` for more information
+      fuzzy = { implementation = 'lua' },
 
-    -- Shows a signature help window while you type arguments for a function
-    signature = { enabled = true },
-  }
+      -- Shows a signature help window while you type arguments for a function
+      signature = { enabled = true },
+    }
   end) -- later
 end
 
@@ -1163,12 +1167,17 @@ do
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  require 'kickstart.plugins.debug'
-  require 'kickstart.plugins.indent_line'
-  require 'kickstart.plugins.lint'
-  require 'kickstart.plugins.autopairs'
-  require 'kickstart.plugins.neo-tree'
-  require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
+  do
+    Later(function()
+      require 'kickstart.plugins.debug'
+      require 'kickstart.plugins.indent_line'
+      require 'kickstart.plugins.lint'
+      require 'kickstart.plugins.autopairs'
+      require 'kickstart.plugins.neo-tree'
+      require 'kickstart.plugins.gitsigns'
+      require 'custom.plugins'
+    end)
+  end
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --

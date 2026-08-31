@@ -28,7 +28,7 @@ vim.keymap.set('n', '<leader>B', function() require('dap').set_breakpoint(vim.fn
 -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
 vim.keymap.set('n', '<F7>', function() require('dap-view').toggle() end, { desc = 'Debug toggle ui' })
 
-later(function()
+Later(function()
   local dap = require 'dap'
 
   require('mason-nvim-dap').setup {

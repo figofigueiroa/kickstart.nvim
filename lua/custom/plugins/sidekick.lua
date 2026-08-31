@@ -8,7 +8,8 @@ vim.keymap.set('n', '<tab>', function()
   end
 end, { expr = true, desc = 'Goto/Apply Next Edit Suggestion' })
 
-later(function()
+
+On_event('InsertEnter', function()
   require('sidekick').setup {
     cli = {
       mux = {

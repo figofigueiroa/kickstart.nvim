@@ -3,6 +3,6 @@
 
 vim.pack.add { Gh 'windwp/nvim-autopairs' }
 
-on_event('InsertEnter', function()
+On_event('InsertEnter', function()
   require('nvim-autopairs').setup {}
 end)
