@@ -185,6 +185,7 @@ do
   -- Clear highlights on search when pressing <Esc> in normal mode
   --  See `:help hlsearch`
   vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+  vim.keymap.set('n', '<leader>fm', '<cmd>lua MiniFiles.open()<CR>')
 
   -- Diagnostic Config & Keymaps
   --  See `:help vim.diagnostic.Opts`
@@ -402,9 +403,17 @@ do
   -- For most plugins its not enough to install them, you also need to call their `.setup()` to start them.
 
   -- [[ mini.nvim ]]
-  --  A collection of various small independent plugins/modules
+  --  Individual mini modules loaded separately instead of the full library.
   --  Loaded first so that `later` and `on_event` helpers are available to all plugins below.
-  vim.pack.add { Gh 'nvim-mini/mini.nvim' }
+  vim.pack.add {
+    Gh 'nvim-mini/mini.misc',
+    Gh 'nvim-mini/mini.icons',
+    Gh 'nvim-mini/mini.ai',
+    Gh 'nvim-mini/mini.statuscolumn',
+    Gh 'nvim-mini/mini.surround',
+    Gh 'nvim-mini/mini.statusline',
+    Gh 'nvim-mini/mini.files',
+  }
   local misc = require 'mini.misc'
   Later = function(f)
     vim.schedule(function() misc.safely('later', f) end)
@@ -423,8 +432,6 @@ do
   --
   -- We first install it from https://github.com/NMAC427/guess-indent.nvim
   -- and then call its `setup()` function to start it with default settings.
-  vim.pack.add { Gh 'NMAC427/guess-indent.nvim' }
-  Later(function() require('guess-indent').setup {} end)
 
   -- Here is a more advanced configuration example that passes options to `gitsigns.nvim`
   --
@@ -606,6 +613,7 @@ do
   }
 
   On_event('VimEnter', function() require('mini.statuscolumn').setup() end)
+  On_event('VimEnter', function() require('mini.files').setup() end)
 
   -- Add/delete/replace surroundings (brackets, quotes, etc.)
   --
@@ -673,13 +681,13 @@ do
     -- Disable snacks modules we are not using here
     -- (they can be enabled later as needed)
     bigfile = { enabled = true },
-    dashboard = { enabled = false },
+    dashboard = { enabled = true },
     explorer = { enabled = false },
-    indent = { enabled = false },
+    indent = { enabled = true },
     input = { enabled = false },
     notifier = { enabled = false },
     quickfile = { enabled = true },
-    scope = { enabled = false },
+    scope = { enabled = true },
     scroll = { enabled = false },
     statuscolumn = { enabled = false },
     words = { enabled = false },
