@@ -96,10 +96,10 @@ do
   -- See `:help mapleader`
   --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
   vim.g.mapleader = ' '
-  vim.g.maplocalleader = ' '
+  vim.g.maplocalleader = '\\'
 
   -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = false
+  vim.g.have_nerd_font = true
 
   -- [[ Setting options ]]
   --  See `:help vim.o`
@@ -139,7 +139,7 @@ do
   vim.o.signcolumn = 'yes'
 
   -- Decrease update time
-  vim.o.updatetime = 250
+  vim.o.updatetime = 200
 
   -- Decrease mapped sequence wait time
   vim.o.timeoutlen = 300
@@ -161,7 +161,20 @@ do
 
   -- Preview substitutions live, as you type!
   vim.o.inccommand = 'split'
-
+  vim.opt.completeopt = 'menu,menuone,noselect'
+  vim.opt.conceallevel = 2 -- Hide * markup for bold and italic, but not markers with substitutions
+  vim.opt.foldlevel = 99
+  vim.opt.foldmethod = 'indent'
+  vim.opt.foldtext = ''
+  vim.opt.formatoptions = 'jcroqlnt' -- tcqj
+  vim.opt.grepformat = '%f:%l:%c:%m'
+  vim.opt.grepprg = 'rg --vimgrep'
+  vim.opt.ignorecase = true -- Ignore case
+  vim.opt.sidescrolloff = 8 -- Columns of context
+  vim.opt.expandtab = true -- Use spaces instead of tabs
+  vim.opt.tabstop = 2 -- Number of spaces tabs count for
+  vim.opt.softtabstop = 2 -- Number of spaces to insert for a tab
+  vim.opt.virtualedit = 'block' -- Allow cursor to move where there is no text in visual block mode
   -- Show which line your cursor is on
   vim.o.cursorline = true
 
@@ -211,7 +224,7 @@ do
     },
   }
 
-  vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+  vim.keymap.set('n', '<leader>xq', vim.diagnostic.setloclist, { desc = 'Open diagnostic Quickfi[X] list' })
   -- location list
   vim.keymap.set('n', '<leader>xl', function()
     local success, err = pcall(vim.fn.getloclist(0, { winid = 0 }).winid ~= 0 and vim.cmd.lclose or vim.cmd.lopen)
@@ -219,7 +232,7 @@ do
   end, { desc = 'Location List' })
 
   -- quickfix list
-  vim.keymap.set('n', '<leader>xq', function()
+  vim.keymap.set('n', '<leader>xx', function()
     local success, err = pcall(vim.fn.getqflist({ winid = 0 }).winid ~= 0 and vim.cmd.cclose or vim.cmd.copen)
     if not success and err then vim.notify(err, vim.log.levels.ERROR) end
   end, { desc = 'Quickfix List' })
@@ -471,6 +484,7 @@ do
         { '<leader>T', group = '[T]erminal', mode = { 'n', 'v' } },
         { '<leader>g', group = '[G]it', mode = { 'n', 'v' } },
         { '<leader>gr', group = 'Lsp Actions', mode = { 'n', 'v' } },
+        { '<leader>q', group = 'Session Manager', mode = { 'n', 'v' } },
       },
     }
   end) -- later which-key
@@ -681,7 +695,7 @@ do
     -- Disable snacks modules we are not using here
     -- (they can be enabled later as needed)
     bigfile = { enabled = true },
-    dashboard = { enabled = true },
+    dashboard = { enabled = false },
     explorer = { enabled = false },
     indent = { enabled = true },
     input = { enabled = false },
@@ -711,7 +725,7 @@ do
   vim.keymap.set('n', '<leader>sq', function() Snacks.picker.qflist() end, { desc = '[S]earch [Q]uickfix List' })
   vim.keymap.set('n', '<leader>s"', function() Snacks.picker.registers() end, { desc = '[S]earch [R]egisters' })
   vim.keymap.set('n', '<leader>st', function() Snacks.picker.todo_comments() end, { desc = '[S]earch [T]odo Comments' })
-  vim.keymap.set('n', '<leader>sT', function () Snacks.picker.todo_comments({ keywords = { "TODO", "FIX", "FIXME", "NOTE" } }) end, { desc = "Todo/Fix/Fixme" })
+  vim.keymap.set('n', '<leader>sT', function() Snacks.picker.todo_comments { keywords = { 'TODO', 'FIX', 'FIXME', 'NOTE' } } end, { desc = 'Todo/Fix/Fixme' })
 
   vim.keymap.set('n', '<leader>gL', function() Snacks.picker.git_log() end, { desc = 'Git Log (cwd)' })
   vim.keymap.set('n', '<leader>gb', function() Snacks.picker.git_log_line() end, { desc = 'Git Blame Line' })
@@ -759,8 +773,8 @@ do
       -- Useful when you're not sure what type a variable is and you want to see
       -- the definition of its *type*, not where it was *defined*.
       vim.keymap.set('n', 'grt', function() Snacks.picker.lsp_type_definitions() end, { buffer = buf, desc = '[G]oto [T]ype Definition' })
-      vim.keymap.set('n', 'gai', function() Snacks.picker.lsp_incoming_calls() end, { buffer = buf, desc = "C[a]lls Incoming" })
-      vim.keymap.set('n', 'gao', function() Snacks.picker.lsp_outgoing_calls() end, { buffer = buf, desc = "C[a]lls Outgoing" })
+      vim.keymap.set('n', 'gai', function() Snacks.picker.lsp_incoming_calls() end, { buffer = buf, desc = 'C[a]lls Incoming' })
+      vim.keymap.set('n', 'gao', function() Snacks.picker.lsp_outgoing_calls() end, { buffer = buf, desc = 'C[a]lls Outgoing' })
     end,
   })
 
