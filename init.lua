@@ -198,7 +198,6 @@ do
   -- Clear highlights on search when pressing <Esc> in normal mode
   --  See `:help hlsearch`
   vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
-  vim.keymap.set('n', '<leader>fm', '<cmd>lua MiniFiles.open()<CR>')
 
   -- Diagnostic Config & Keymaps
   --  See `:help vim.diagnostic.Opts`
@@ -256,11 +255,11 @@ do
   -- Keybinds to make split navigation easier.
   --  Use CTRL+<hjkl> to switch between windows
   --
-  --  See `:help wincmd` for a list of all window commands
-  vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-  vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-  vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-  vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+  -- --  See `:help wincmd` for a list of all window commands
+  -- vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+  -- vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+  -- vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+  -- vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
   -- Resize window using <ctrl> arrow keys
   vim.keymap.set('n', '<C-Up>', '<cmd>resize +2<cr>', { desc = 'Increase Window Height' })
   vim.keymap.set('n', '<C-Down>', '<cmd>resize -2<cr>', { desc = 'Decrease Window Height' })
@@ -479,6 +478,7 @@ do
         { '<leader>d', group = '[D]ebugger', mode = { 'n', 'v' } },
         { '<leader>u', group = '[U]i Toggles', mode = { 'n', 'v' } },
         { '<leader>c', group = '[C]ode Actions', mode = { 'n', 'v' } },
+        { '<leader>co', desc = '[C]ode [O]rganize Imports' },
         { '<leader>R', group = '[R]est', mode = { 'n', 'v' } },
         { '<leader>r', group = '[R]efactor', mode = { 'n', 'v' } },
         { '<leader>T', group = '[T]erminal', mode = { 'n', 'v' } },
@@ -591,17 +591,17 @@ do
     --   Visual = { fg = 'base', bg = 'text', inherit = false },
     -- },
 
-    before_highlight = function(group, highlight, palette)
-      -- Disable all undercurls
-      -- if highlight.undercurl then
-      --     highlight.undercurl = false
-      -- end
-      --
-      -- Change palette colour
-      -- if highlight.fg == palette.pine then
-      --     highlight.fg = palette.foam
-      -- end
-    end,
+    -- before_highlight = function(group, highlight, palette)
+    --   -- Disable all undercurls
+    --   if highlight.undercurl then
+    --       highlight.undercurl = false
+    --   end
+    --   --
+    --   -- Change palette colour
+    --   -- if highlight.fg == palette.pine then
+    --   --     highlight.fg = palette.foam
+    --   -- end
+    -- end,
   }
 
   -- Load the colorscheme
@@ -627,7 +627,11 @@ do
   }
 
   On_event('VimEnter', function() require('mini.statuscolumn').setup() end)
-  On_event('VimEnter', function() require('mini.files').setup() end)
+  -- On_event('VimEnter', function() require('mini.files').setup({
+  --   mappings = {
+  --
+  --   }
+  -- }) end)
 
   -- Add/delete/replace surroundings (brackets, quotes, etc.)
   --
@@ -749,32 +753,53 @@ do
     callback = function(event)
       local buf = event.buf
 
+      vim.keymap.set('n', '<leader>cl', function() Snacks.picker.lsp_config() end, { buffer = buf, desc = 'Lsp Info' })
       -- Find references for the word under your cursor.
-      vim.keymap.set('n', 'grr', function() Snacks.picker.lsp_references() end, { buffer = buf, desc = '[G]oto [R]eferences' })
+      vim.keymap.set('n', 'gr', function() Snacks.picker.lsp_references() end, { buffer = buf, desc = '[G]oto [R]eferences' })
 
       -- Jump to the implementation of the word under your cursor.
       -- Useful when your language has ways of declaring types without an actual implementation.
-      vim.keymap.set('n', 'gri', function() Snacks.picker.lsp_implementations() end, { buffer = buf, desc = '[G]oto [I]mplementation' })
+      vim.keymap.set('n', 'gI', function() Snacks.picker.lsp_implementations() end, { buffer = buf, desc = '[G]oto [I]mplementation' })
 
       -- Jump to the definition of the word under your cursor.
       -- This is where a variable was first declared, or where a function is defined, etc.
       -- To jump back, press <C-t>.
-      vim.keymap.set('n', 'grd', function() Snacks.picker.lsp_definitions() end, { buffer = buf, desc = '[G]oto [D]efinition' })
+      vim.keymap.set('n', 'gd', function() Snacks.picker.lsp_definitions() end, { buffer = buf, desc = '[G]oto [D]efinition' })
 
       -- Fuzzy find all the symbols in your current document.
       -- Symbols are things like variables, functions, types, etc.
-      vim.keymap.set('n', 'gO', function() Snacks.picker.lsp_symbols() end, { buffer = buf, desc = 'Open Document Symbols' })
+      -- vim.keymap.set('n', 'gO', function() Snacks.picker.lsp_symbols() end, { buffer = buf, desc = 'Open Document Symbols' })
 
       -- Fuzzy find all the symbols in your current workspace.
       -- Similar to document symbols, except searches over your entire project.
-      vim.keymap.set('n', 'gW', function() Snacks.picker.lsp_workspace_symbols() end, { buffer = buf, desc = 'Open Workspace Symbols' })
+      -- vim.keymap.set('n', 'gW', function() Snacks.picker.lsp_workspace_symbols() end, { buffer = buf, desc = 'Open Workspace Symbols' })
 
       -- Jump to the type of the word under your cursor.
       -- Useful when you're not sure what type a variable is and you want to see
       -- the definition of its *type*, not where it was *defined*.
-      vim.keymap.set('n', 'grt', function() Snacks.picker.lsp_type_definitions() end, { buffer = buf, desc = '[G]oto [T]ype Definition' })
+      vim.keymap.set('n', 'gy', function() Snacks.picker.lsp_type_definitions() end, { buffer = buf, desc = '[G]oto T[y]pe Definition' })
       vim.keymap.set('n', 'gai', function() Snacks.picker.lsp_incoming_calls() end, { buffer = buf, desc = 'C[a]lls Incoming' })
       vim.keymap.set('n', 'gao', function() Snacks.picker.lsp_outgoing_calls() end, { buffer = buf, desc = 'C[a]lls Outgoing' })
+      -- Goto Declaration
+      vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { desc = 'Goto Declaration' })
+      vim.keymap.set('n', 'K', function() vim.lsp.buf.hover() end, { desc = 'Hover' })
+      vim.keymap.set('n', 'gK', function() vim.lsp.buf.signature_help() end, { desc = 'Signature Help' })
+      vim.keymap.set('i', '<C-k>', function() vim.lsp.buf.signature_help() end, { desc = 'Signature Help' })
+      vim.keymap.set({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, { desc = 'Code Action' })
+      vim.keymap.set({ 'n', 'x' }, '<leader>cc', vim.lsp.codelens.run, { desc = 'Run Codelens' })
+      -- vim.keymap.set('n', '<leader>cC', vim.lsp.codelens.refresh, { desc = 'Refresh & Display Codelens' })
+      vim.keymap.set('n', '<leader>cr', vim.lsp.buf.rename, { desc = 'Rename' })
+      vim.keymap.set('n', '<leader>cR', function() Snacks.rename.rename_file() end, { desc = 'Rename File' })
+      vim.keymap.set('n', '<leader>cA', function()
+        vim.lsp.buf.code_action { context = { only = { 'source' } } }
+      end, { desc = 'Source Action' })
+      vim.keymap.set('n', '<leader>co', function()
+        vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' } } }
+      end, { desc = 'Organize Imports', buffer = buf })
+      vim.keymap.set('n', ']]', function() Snacks.words.jump(vim.v.count1) end, { desc = 'Next Reference' })
+      vim.keymap.set('n', '[[', function() Snacks.words.jump(-vim.v.count1) end, { desc = 'Prev Reference' })
+      vim.keymap.set('n', '<a-n>', function() Snacks.words.jump(vim.v.count1, true) end, { desc = 'Next Reference' })
+      vim.keymap.set('n', '<a-p>', function() Snacks.words.jump(-vim.v.count1, true) end, { desc = 'Prev Reference' })
     end,
   })
 
@@ -1192,10 +1217,10 @@ do
   do
     Later(function()
       require 'kickstart.plugins.debug'
-      require 'kickstart.plugins.indent_line'
+      -- require 'kickstart.plugins.indent_line'
       require 'kickstart.plugins.lint'
       require 'kickstart.plugins.autopairs'
-      require 'kickstart.plugins.neo-tree'
+      -- require 'kickstart.plugins.neo-tree'
       require 'kickstart.plugins.gitsigns'
       require 'custom.plugins'
     end)
