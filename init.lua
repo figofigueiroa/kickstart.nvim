@@ -453,16 +453,6 @@ do
   --
   -- See `:help gitsigns` to understand what each configuration key does.
   -- Adds git related signs to the gutter, as well as utilities for managing changes
-  vim.pack.add { Gh 'lewis6991/gitsigns.nvim' }
-  require('gitsigns').setup {
-    signs = {
-      add = { text = '+' }, ---@diagnostic disable-line: missing-fields
-      change = { text = '~' }, ---@diagnostic disable-line: missing-fields
-      delete = { text = '_' }, ---@diagnostic disable-line: missing-fields
-      topdelete = { text = '‾' }, ---@diagnostic disable-line: missing-fields
-      changedelete = { text = '~' }, ---@diagnostic disable-line: missing-fields
-    },
-  }
 
   -- Useful plugin to show you pending keybinds.
   vim.pack.add { Gh 'folke/which-key.nvim' }
@@ -1016,12 +1006,7 @@ do
   do
     Later(function()
       require 'kickstart.plugins.debug'
-      -- require 'kickstart.plugins.indent_line'
       require 'kickstart.plugins.lint'
-      -- require 'kickstart.plugins.autopairs'
-      -- require 'kickstart.plugins.neo-tree'
-      require 'kickstart.plugins.gitsigns'
-      require 'custom.plugins'
     end)
   end
 

@@ -60,18 +60,17 @@ require('snacks').setup {
     },
   },
   explorer = { enabled = false },
-  indent = { enabled = true },
+  indent = { enabled = true, scope = { char = '╎' } },
   input = { enabled = false },
-  notifier = { enabled = false },
+  notifier = {
+    enabled = true,
+    timeout = 3000,
+  },
   quickfile = { enabled = true },
   scope = { enabled = true },
   scroll = { enabled = false },
   statuscolumn = { enabled = false },
   words = { enabled = false },
-  animate = {
-    duration = { step = 20, total = 300 }, -- ms per step and total ms
-    easing = 'outQuad',
-  },
 }
 
 -- ============================================================
@@ -100,6 +99,7 @@ vim.keymap.set('n', '<leader>sT', function() Snacks.picker.todo_comments { keywo
 vim.keymap.set('n', '<leader>gL', function() Snacks.picker.git_log() end, { desc = 'Git Log (cwd)' })
 vim.keymap.set('n', '<leader>gb', function() Snacks.picker.git_log_line() end, { desc = 'Git Blame Line' })
 vim.keymap.set('n', '<leader>gf', function() Snacks.picker.git_log_file() end, { desc = 'Git Current File History' })
+vim.keymap.set('n', '<leader>gd', function() Snacks.picker.git_diff() end, { desc = 'Git Current File History' })
 
 -- Fuzzily search lines in the current buffer
 vim.keymap.set('n', '<leader>/', function() Snacks.picker.lines() end, { desc = '[/] Fuzzily search in current buffer' })
