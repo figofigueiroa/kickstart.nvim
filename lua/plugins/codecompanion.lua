@@ -5,14 +5,16 @@ vim.pack.add {
   Gh 'cairijun/codecompanion-agentskills.nvim',
 }
 
+local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
+
 On_event('VimEnter', function()
   require('codecompanion').setup {
     interactions = {
       chat = {
-        adapter = 'opencode',
+        adapter = is_windows and 'copilot' or 'opencode',
       },
       cli = {
-        agent = 'opencode',
+        agent = is_windows and 'copilot' or 'opencode',
         agents = {
           opencode = {
             cmd = 'opencode',
@@ -23,21 +25,26 @@ On_event('VimEnter', function()
         },
       },
     },
-    extensions = {
-      history = {
-        enabled = true, -- defaults to true
-        opts = {
-          dir_to_save = vim.fn.stdpath 'data' .. '/codecompanion_chats.json',
-        },
-      },
-      agentskills = {
-        opts = {
-          paths = {
-            { '~/.config/nvim/skills', recursive = true }, -- Recursive search
-          },
-        },
+extensions = {
+  history = {
+    enabled = true,
+    opts = {
+      dir_to_save = vim.fn.stdpath 'data' .. '/codecompanion_chats.json',
+      auto_generate_title = true,
+      title_generation_opts = {
+        adapter = 'copilot', -- ou 'anthropic', 'openai', etc. — qualquer HTTP adapter que você tenha configurado/API key
+        -- model = 'gpt-4.1-mini', -- opcional: forçar um modelo mais barato só pra título
       },
     },
+  },
+  agentskills = {
+    opts = {
+      paths = {
+        { '~/.config/nvim/skills', recursive = true },
+      },
+    },
+  },
+},
   }
 end)
 
@@ -71,4 +78,5 @@ map(
 
 -- Expande "cc" em "CodeCompanion" na linha de comando (opcional, mas útil)
 vim.cmd [[cab cc CodeCompanion]]
+
 

@@ -95,7 +95,9 @@ vim.keymap.set('n', '<leader>sq', function() Snacks.picker.qflist() end, { desc 
 vim.keymap.set('n', '<leader>s"', function() Snacks.picker.registers() end, { desc = '[S]earch [R]egisters' })
 vim.keymap.set('n', '<leader>st', function() Snacks.picker.todo_comments() end, { desc = '[S]earch [T]odo Comments' })
 vim.keymap.set('n', '<leader>sT', function() Snacks.picker.todo_comments { keywords = { 'TODO', 'FIX', 'FIXME', 'NOTE' } } end, { desc = 'Todo/Fix/Fixme' })
-
+vim.keymap.set("n", "<leader>sn", function()
+  Snacks.picker.notifications()
+end, { desc = "Search Notification History" })
 vim.keymap.set('n', '<leader>gL', function() Snacks.picker.git_log() end, { desc = 'Git Log (cwd)' })
 vim.keymap.set('n', '<leader>gb', function() Snacks.picker.git_log_line() end, { desc = 'Git Blame Line' })
 vim.keymap.set('n', '<leader>gf', function() Snacks.picker.git_log_file() end, { desc = 'Git Current File History' })
@@ -113,7 +115,7 @@ vim.keymap.set(
 )
 
 -- Shortcut for searching your Neovim configuration files
-vim.keymap.set('n', '<leader>sn', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true } end, { desc = '[S]earch [N]eovim files' })
+vim.keymap.set('n', '<leader>snc', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true } end, { desc = '[S]earch [N]eovim [C]onfig files' })
 
 -- ============================================================
 -- Toggles

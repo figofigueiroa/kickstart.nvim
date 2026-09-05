@@ -26,16 +26,48 @@ end
 --  - yiiq - [Y]ank [I]nside [I]+1 [Q]uote
 --  - ci'  - [C]hange [I]nside [']quote
 
--- [[ mini.statuscolumn ]]
 On_event('VimEnter', function()
   require('mini.statuscolumn').setup()
 
-  -- [[ Simple and easy statusline.]]
   local statusline = require 'mini.statusline'
   statusline.setup { use_icons = vim.g.have_nerd_font }
 
   ---@diagnostic disable-next-line: duplicate-set-field
   statusline.section_location = function() return '%2l:%-2v' end
+
+  -- indicador de "CodeCompanion processando"
+  statusline.section_codecompanion = function()
+    if not vim.g.codecompanion_processing then return '' end
+    return (vim.g.have_nerd_font and ' ' or '[AI] ') .. 'CodeCompanion'
+  end
+
+  ---@diagnostic disable-next-line: duplicate-set-field
+  statusline.config.content.active = function()
+    local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
+    local git = MiniStatusline.section_git { trunc_width = 40 }
+    local diff = MiniStatusline.section_diff { trunc_width = 75 }
+    local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
+    local lsp = MiniStatusline.section_lsp { trunc_width = 75 }
+    local filename = MiniStatusline.section_filename { trunc_width = 140 }
+    local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
+    local location = MiniStatusline.section_location { trunc_width = 75 }
+    local search = MiniStatusline.section_searchcount { trunc_width = 75 }
+    local cc = MiniStatusline.section_codecompanion()
+
+    return MiniStatusline.combine_groups {
+      { hl = mode_hl, strings = { mode } },
+      { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
+      '%<',
+      { hl = 'MiniStatuslineFilename', strings = { filename } },
+      '%=',
+      { hl = 'DiagnosticWarn', strings = { cc } },
+      { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
+      { hl = mode_hl, strings = { search, location } },
+    }
+  end
+
+  -- resto do bloco (mini.animate, mini.diff, etc.) continua igual
+
   -- -- [[ mini.animate ]]
   -- -- Neovim animations for scroll, resize, cursor, etc.
   -- instala o plugin (ajuste conforme seu gerenciamento de vim.pack)
