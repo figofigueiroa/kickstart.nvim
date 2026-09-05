@@ -1,3 +1,24 @@
+-- [[ mini.nvim ]]
+--  Individual mini modules loaded separately instead of the full library.
+vim.pack.add {
+  Gh 'nvim-mini/mini.icons',
+  Gh 'nvim-mini/mini.ai',
+  Gh 'nvim-mini/mini.statuscolumn',
+  Gh 'nvim-mini/mini.surround',
+  Gh 'nvim-mini/mini.pairs',
+  Gh 'nvim-mini/mini.diff',
+  Gh 'nvim-mini/mini.align',
+  Gh 'nvim-mini/mini.animate',
+  Gh 'nvim-mini/mini.statusline',
+}
+
+-- If a nerd font is available, load the icons module for pretty icons in various plugins.
+if vim.g.have_nerd_font then
+  require('mini.icons').setup()
+  -- Used for backwards compatibility with plugins that require `nvim-web-devicons` (e.g. telescope.nvim)
+  MiniIcons.mock_nvim_web_devicons()
+end
+
 -- [[ Better Around/Inside textobjects]]
 --
 -- Examples:
