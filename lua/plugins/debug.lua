@@ -8,28 +8,64 @@
 
 vim.pack.add {
   Gh 'mfussenegger/nvim-dap',
-  -- Gh 'rcarriga/nvim-dap-ui',
   Gh 'nvim-neotest/nvim-nio',
   Gh 'mason-org/mason.nvim',
   Gh 'jay-babu/mason-nvim-dap.nvim',
-  -- Gh 'leoluz/nvim-dap-go',
   Gh 'igorlfs/nvim-dap-view',
-  -- Gh 'theHamsta/nvim-dap-virtual-text'
 }
 
--- Basic debugging keymaps, feel free to change to your liking!
--- All require() calls here are lazy — dap is only loaded when a keymap fires.
+-- Basic debugging keymaps (function keys)
 vim.keymap.set('n', '<F5>', function() require('dap').continue() end, { desc = 'Debug: Start/Continue' })
 vim.keymap.set('n', '<F1>', function() require('dap').step_into() end, { desc = 'Debug: Step Into' })
 vim.keymap.set('n', '<F2>', function() require('dap').step_over() end, { desc = 'Debug: Step Over' })
 vim.keymap.set('n', '<F3>', function() require('dap').step_out() end, { desc = 'Debug: Step Out' })
-vim.keymap.set('n', '<leader>b', function() require('dap').toggle_breakpoint() end, { desc = 'Debug: Toggle Breakpoint' })
-vim.keymap.set('n', '<leader>B', function() require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ') end, { desc = 'Debug: Set Breakpoint' })
--- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
 vim.keymap.set('n', '<F7>', function() require('dap-view').toggle() end, { desc = 'Debug toggle ui' })
+
+-- LazyVim-style debug keymaps (<leader>d prefix)
+local function get_args(config)
+  local args = type(config.args) == 'function' and (config.args() or {}) or config.args or {}
+  local args_str = type(args) == 'table' and table.concat(args, ' ') or args
+  config = vim.deepcopy(config)
+  config.args = function()
+    local new_args = vim.fn.expand(vim.fn.input('Run with args: ', args_str))
+    return require('dap.utils').splitstr(new_args)
+  end
+  return config
+end
+
+local leader_d_keymaps = {
+  { '<leader>dB', function() require('dap').set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = 'Breakpoint Condition' },
+  { '<leader>db', function() require('dap').toggle_breakpoint() end, desc = 'Toggle Breakpoint' },
+  { '<leader>dc', function() require('dap').continue() end, desc = 'Run/Continue' },
+  { '<leader>da', function() require('dap').continue({ before = get_args }) end, desc = 'Run with Args' },
+  { '<leader>dC', function() require('dap').run_to_cursor() end, desc = 'Run to Cursor' },
+  { '<leader>dg', function() require('dap').goto_() end, desc = 'Go to Line (No Execute)' },
+  { '<leader>di', function() require('dap').step_into() end, desc = 'Step Into' },
+  { '<leader>dj', function() require('dap').down() end, desc = 'Down' },
+  { '<leader>dk', function() require('dap').up() end, desc = 'Up' },
+  { '<leader>dl', function() require('dap').run_last() end, desc = 'Run Last' },
+  { '<leader>do', function() require('dap').step_out() end, desc = 'Step Out' },
+  { '<leader>dO', function() require('dap').step_over() end, desc = 'Step Over' },
+  { '<leader>dP', function() require('dap').pause() end, desc = 'Pause' },
+  { '<leader>dr', function() require('dap').repl.toggle() end, desc = 'Toggle REPL' },
+  { '<leader>ds', function() require('dap').session() end, desc = 'Session' },
+  { '<leader>dt', function() require('dap').terminate() end, desc = 'Terminate' },
+  { '<leader>dw', function() require('dap.ui.widgets').hover() end, desc = 'Widgets' },
+  { '<leader>du', function() require('dap-view').toggle() end, desc = 'Toggle Debug View' },
+}
+
+for _, km in ipairs(leader_d_keymaps) do
+  vim.keymap.set('n', km[1], km[2], { desc = 'Debug: ' .. km.desc })
+end
 
 Later(function()
   local dap = require 'dap'
+
+  vim.fn.sign_define('DapStopped', { text = '󰁕 ', texthl = 'DiagnosticWarn', linehl = 'DapStoppedLine', priority = 20 })
+  vim.fn.sign_define('DapBreakpoint', { text = ' ', texthl = 'DiagnosticInfo', priority = 20 })
+  vim.fn.sign_define('DapBreakpointCondition', { text = ' ', texthl = 'DiagnosticInfo', priority = 20 })
+  vim.fn.sign_define('DapBreakpointRejected', { text = ' ', texthl = 'DiagnosticError', priority = 20 })
+  vim.fn.sign_define('DapLogPoint', { text = '.>', texthl = 'DiagnosticInfo', priority = 20 })
 
   require('mason-nvim-dap').setup {
     -- Makes a best effort to setup the various debuggers with
@@ -107,4 +143,11 @@ Later(function()
 
   -- Reuse the same configs for F#
   dap.configurations.fsharp = dap.configurations.cs
+
+  -- Setup dap config by VsCode launch.json file
+  local vscode = require 'dap.ext.vscode'
+  local json = require 'plenary.json'
+  vscode.json_decode = function(str)
+    return vim.json.decode(json.json_strip_comments(str))
+  end
 end)
