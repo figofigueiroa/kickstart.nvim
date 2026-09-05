@@ -130,6 +130,25 @@ On_event('VimEnter', function()
       },
     },
   }
+
+  vim.keymap.set('n', '<leader>go', function()
+    require('mini.diff').toggle_overlay(0)
+  end, { desc = 'Toggle mini.diff overlay' })
+
+  Snacks.toggle({
+    name = 'Mini Diff Signs',
+    get = function() return vim.g.minidiff_disable ~= true end,
+    set = function(state)
+      vim.g.minidiff_disable = not state
+      if state then
+        require('mini.diff').enable(0)
+      else
+        require('mini.diff').disable(0)
+      end
+      -- redraw to update the signs
+      vim.defer_fn(function() vim.cmd [[redraw!]] end, 200)
+    end,
+  }):map '<leader>uG'
 end)
 
 -- [[ Add/delete/replace surroundings (brackets, quotes, etc.)]]
@@ -164,5 +183,3 @@ On_event('InsertEnter', function()
   -- Auto pairs for brackets, quotes, etc.
   require('mini.pairs').setup()
 end)
-
--- vim.keymap.set('n', '<leader>go', function() require('mini.diff').toggle_overlay(0) end, { desc = 'Toggle mini.diff overlay' })
