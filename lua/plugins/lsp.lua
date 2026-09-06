@@ -53,6 +53,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
     --  For example, in C this would take you to the header.
     map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
+    map('grd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+
     -- The following two autocommands are used to highlight references of the
     -- word under your cursor when your cursor rests there for a little while.
     --    See `:help CursorHold` for information about when this is executed
@@ -140,6 +142,7 @@ vim.pack.add {
   Gh 'mason-org/mason.nvim',
   Gh 'mason-org/mason-lspconfig.nvim',
   Gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
+  Gh 'mfussenegger/nvim-jdtls', -- novo
 }
 
 Later(function()

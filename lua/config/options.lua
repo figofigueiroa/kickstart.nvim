@@ -12,10 +12,14 @@ do
   --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
   vim.g.mapleader = ' '
   vim.g.maplocalleader = '\\'
-
+  vim.g.loaded_netrw = 1
+  vim.g.loaded_netrwPlugin = 1
   -- Set to true if you have a Nerd Font installed and selected in the terminal
   vim.g.have_nerd_font = true
-
+  vim.g.autoformat = true
+  vim.g.root_spec = { 'lsp', { '.git', 'lua' }, 'cwd' }
+  vim.g.markdown_recommended_style = 0
+  vim.g.difftool_replace_diff_mode = true -- false by default, if true replaces nvim -d with DiffTool
   -- [[ Setting options ]]
   --  See `:help vim.o`
   -- NOTE: You can change these options as you wish!
@@ -81,11 +85,21 @@ do
   vim.opt.foldlevel = 99
   vim.opt.foldmethod = 'indent'
   vim.opt.foldtext = ''
+  vim.opt.fillchars = {
+    foldopen = '',
+    foldclose = '',
+    fold = ' ',
+    foldsep = ' ',
+    diff = '╱',
+    eob = ' ',
+  }
+
+  vim.opt.shiftwidth = 2 -- Size of an indent
+  vim.opt.jumpoptions = 'view'
   vim.opt.formatoptions = 'jcroqlnt' -- tcqj
   vim.opt.grepformat = '%f:%l:%c:%m'
   vim.opt.autoread = true
   vim.opt.grepprg = 'rg --vimgrep'
-  vim.opt.ignorecase = true -- Ignore case
   vim.opt.sidescrolloff = 8 -- Columns of context
   vim.opt.expandtab = true -- Use spaces instead of tabs
   vim.opt.tabstop = 2 -- Number of spaces tabs count for
@@ -101,4 +115,12 @@ do
   -- instead raise a dialog asking if you wish to save the current file(s)
   -- See `:help 'confirm'`
   vim.o.confirm = true
+
+  vim.opt.laststatus = 3
+  vim.opt.linebreak = true
+  vim.opt.pumblend = 10
+  vim.opt.pumheight = 10
+  vim.opt.relativenumber = true
+  vim.opt.ruler = false
+  vim.opt.autowrite = true
 end
