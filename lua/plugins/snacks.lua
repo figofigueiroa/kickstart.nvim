@@ -132,7 +132,9 @@ Snacks.toggle.indent():map '<leader>ug'
 Snacks.toggle.scroll():map '<leader>uS'
 Snacks.toggle.profiler():map '<leader>dpp'
 Snacks.toggle.profiler_highlights():map '<leader>dph'
-Snacks.toggle.animate():map '<leader>ua'
+Snacks.toggle.zoom():map("<leader>wm"):map("<leader>uZ")
+Snacks.toggle.zen():map("<leader>uz")
+-- Snacks.toggle.animate():map '<leader>ua'
 
 -- ============================================================
 -- LSP picker keymaps (buffer-local, on LspAttach)

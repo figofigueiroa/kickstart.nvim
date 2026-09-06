@@ -2,7 +2,6 @@ vim.pack.add { Gh 'ThePrimeagen/refactoring.nvim', Gh 'lewis6991/async.nvim' }
 
 local map = vim.keymap.set
 
-map({ 'n', 'x' }, '<leader>r', '', { desc = '+refactor' })
 map({ 'n', 'x' }, '<leader>rs', function() return require('refactoring').select_refactor() end, { desc = 'Select Refactor' })
 map({ 'n', 'x' }, '<leader>ri', function() return require('refactoring').inline_var() end, { desc = 'Inline Variable', expr = true })
 map('n', '<leader>rP', function() return require('refactoring.debug').print_loc({ output_location = 'below' }) end, { desc = 'Debug Print Location', expr = true })
