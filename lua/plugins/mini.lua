@@ -10,6 +10,7 @@ vim.pack.add {
   Gh 'nvim-mini/mini.align',
   Gh 'nvim-mini/mini.animate',
   Gh 'nvim-mini/mini.statusline',
+  Gh 'JulienZD/copilot-statusline.nvim',
 }
 
 -- If a nerd font is available, load the icons module for pretty icons in various plugins.
@@ -52,7 +53,8 @@ On_event('VimEnter', function()
     local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
     local location = MiniStatusline.section_location { trunc_width = 75 }
     local search = MiniStatusline.section_searchcount { trunc_width = 75 }
-    local cc = MiniStatusline.section_codecompanion()
+    local cc = MiniStatusline.section_codecompanion { trunc_width = 75 }
+    local copilot = require('copilot-statusline').section_copilot { trunc_width = 75 }
 
     return MiniStatusline.combine_groups {
       { hl = mode_hl, strings = { mode } },
@@ -61,6 +63,7 @@ On_event('VimEnter', function()
       { hl = 'MiniStatuslineFilename', strings = { filename } },
       '%=',
       { hl = 'DiagnosticWarn', strings = { cc } },
+      { hl = 'MiniStatuslineCopilot', strings = { copilot } },
       { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
       { hl = mode_hl, strings = { search, location } },
     }
@@ -131,9 +134,7 @@ On_event('VimEnter', function()
     },
   }
 
-  vim.keymap.set('n', '<leader>go', function()
-    require('mini.diff').toggle_overlay(0)
-  end, { desc = 'Toggle mini.diff overlay' })
+  vim.keymap.set('n', '<leader>go', function() require('mini.diff').toggle_overlay(0) end, { desc = 'Toggle mini.diff overlay' })
 
   Snacks.toggle({
     name = 'Mini Diff Signs',

@@ -5,6 +5,7 @@ vim.pack.add { Gh 'mfussenegger/nvim-lint' }
 Later(function()
   local lint = require 'lint'
   lint.linters_by_ft = {
+    python = { 'ruff' },
     markdown = { 'markdownlint' }, -- Make sure to install `markdownlint` via mason / npm
   }
 

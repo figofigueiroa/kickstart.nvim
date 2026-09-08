@@ -22,6 +22,7 @@ Later(function()
       { '<leader>r', group = '[R]efactor', mode = { 'n', 'v' } },
       { '<leader>T', group = '[T]erminal', mode = { 'n', 'v' } },
       { '<leader>g', group = '[G]it', mode = { 'n', 'v' } },
+      { '<leader>w', group = '[W]indow Control', mode = { 'n', 'v' } },
       { '<leader>gr', group = 'Lsp Actions', mode = { 'n', 'v' } },
       { '<leader>q', group = 'Session Manager', mode = { 'n', 'v' } },
     },

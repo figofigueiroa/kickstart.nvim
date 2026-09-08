@@ -118,6 +118,60 @@ vim.keymap.set(
 vim.keymap.set('n', '<leader>snc', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true } end, { desc = '[S]earch [N]eovim [C]onfig files' })
 
 -- ============================================================
+-- Obsidian vault tags picker (search only in tags)
+-- ============================================================
+do
+  local function pick_vault_tags()
+    local vault = vim.fn.expand('~/Documents/notes/vault')
+    Snacks.picker.pick {
+      title = 'Vault Tags',
+      prompt = 'Tag? ',
+      finder = function()
+        local items, seen = {}, {}
+        local add = function(file, tag)
+          tag = tag:gsub('^#', ''):gsub('[%]%,]', '')
+          if tag ~= '' and not seen[tag] then
+            seen[tag] = true
+            table.insert(items, { text = '# ' .. tag, search = tag, file = file })
+          end
+        end
+
+        local inline = 'rg --no-heading -o -N "#[A-Za-z0-9_/+%.-]+" ' .. vim.fn.fnameescape(vault)
+        for line in io.popen(inline):lines() do
+          local file, tag = line:match('^(.-):#([A-Za-z0-9_/+%.-]+)')
+          if file then add(file, tag) end
+        end
+
+        local fm = 'rg --no-heading -n -A 40 "^tags:" ' .. vim.fn.fnameescape(vault)
+        local cur
+        for line in io.popen(fm):lines() do
+          local file, rest = line:match('^(.-):%d+:tags:%s*(.*)$')
+          if file then
+            cur = file
+            local arr = rest:gsub('[%[%]]', '')
+            for tag in (arr .. ' '):gmatch('[%w_/+-]+') do
+              add(cur, tag)
+            end
+          elseif cur then
+            local content = line:match('^.-%d+%-(.*)$')
+            if content and content:match('^%s*%-%-%-') then
+              cur = nil
+            elseif content then
+              local bullet = content:match('^%s*%-%s*(.-)%s*[,]?$')
+              if bullet then add(cur, bullet) end
+            end
+          end
+        end
+
+        return items
+      end,
+    }
+  end
+
+  vim.keymap.set('n', '<leader>s#', pick_vault_tags, { desc = 'Search Vault Tags' })
+end
+
+-- ============================================================
 -- Toggles
 -- ============================================================
 Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>us'
@@ -132,7 +186,7 @@ Snacks.toggle.indent():map '<leader>ug'
 Snacks.toggle.scroll():map '<leader>uS'
 Snacks.toggle.profiler():map '<leader>dpp'
 Snacks.toggle.profiler_highlights():map '<leader>dph'
-Snacks.toggle.zoom():map("<leader>wm"):map("<leader>uZ")
+Snacks.toggle.zoom():map("<leader>wz"):map("<leader>uZ")
 Snacks.toggle.zen():map("<leader>uz")
 -- Snacks.toggle.animate():map '<leader>ua'
 
@@ -175,3 +229,4 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', '<a-p>', function() Snacks.words.jump(-vim.v.count1, true) end, { desc = 'Prev Reference' })
   end,
 })
+

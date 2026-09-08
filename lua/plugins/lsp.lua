@@ -55,6 +55,50 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     map('grd', vim.lsp.buf.definition, '[G]oto [D]efinition')
 
+    -- TypeScript-specific keymaps (LazyVim-style)
+    if client and client.name == 'vtsls' then
+      map('<leader>co', function()
+        vim.lsp.buf.code_action {
+          context = { only = { 'source.organizeImports' } },
+          apply = true,
+        }
+      end, '[O]rganize Imports')
+      map('<leader>cm', function()
+        vim.lsp.buf.code_action {
+          context = { only = { 'source.addMissingImports.ts' } },
+          apply = true,
+        }
+      end, 'Add [M]issing Imports')
+      map('<leader>cu', function()
+        vim.lsp.buf.code_action {
+          context = { only = { 'source.removeUnused.ts' } },
+          apply = true,
+        }
+      end, 'Remove [U]nused Imports')
+      map('<leader>cd', function()
+        vim.lsp.buf.code_action {
+          context = { only = { 'source.fixAll.ts' } },
+          apply = true,
+        }
+      end, '[F]ix All Diagnostics')
+      map('<leader>cV', function()
+        vim.lsp.buf.execute_command { command = 'typescript.selectTypeScriptVersion' }
+      end, 'Select TS Workspace Version')
+      map('gD', function()
+        local params = vim.lsp.util.make_position_params()
+        vim.lsp.buf.execute_command {
+          command = 'typescript.goToSourceDefinition',
+          arguments = { params.textDocument.uri, params.position },
+        }
+      end, 'Goto Source [D]efinition')
+      map('gR', function()
+        vim.lsp.buf.execute_command {
+          command = 'typescript.findAllFileReferences',
+          arguments = { vim.uri_from_bufnr(0) },
+        }
+      end, 'File [R]eferences')
+    end
+
     -- The following two autocommands are used to highlight references of the
     -- word under your cursor when your cursor rests there for a little while.
     --    See `:help CursorHold` for information about when this is executed
@@ -101,7 +145,16 @@ vim.api.nvim_create_autocmd('LspAttach', {
 local servers = {
   -- clangd = {},
   -- gopls = {},
-  -- pyright = {},
+  pyright = {},
+  ruff = {
+    on_init = function(client)
+      -- Disable capabilities that pyright already provides (avoids duplicate hover)
+      client.server_capabilities.hoverProvider = false
+      client.server_capabilities.definitionProvider = false
+      client.server_capabilities.referencesProvider = false
+      client.server_capabilities.completionProvider = false
+    end,
+  },
   -- rust_analyzer = {},
   --
   -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -109,6 +162,59 @@ local servers = {
   --
   -- But for many setups, the LSP (`ts_ls`) will work just fine
   -- ts_ls = {},
+
+  -- TypeScript / React Native (vtsls config adapted from the LazyVim typescript extra)
+  vtsls = {
+    filetypes = {
+      'javascript',
+      'javascriptreact',
+      'javascript.jsx',
+      'typescript',
+      'typescriptreact',
+      'typescript.tsx',
+    },
+    settings = {
+      complete_function_calls = true,
+      vtsls = {
+        enableMoveToFileCodeAction = true,
+        autoUseWorkspaceTsdk = true,
+        experimental = {
+          maxInlayHintLength = 30,
+          completion = {
+            enableServerSideFuzzyMatch = true,
+          },
+        },
+      },
+      typescript = {
+        updateImportsOnFileMove = { enabled = 'always' },
+        suggest = {
+          completeFunctionCalls = true,
+        },
+        inlayHints = {
+          enumMemberValues = { enabled = true },
+          functionLikeReturnTypes = { enabled = true },
+          parameterNames = { enabled = 'literals' },
+          parameterTypes = { enabled = true },
+          propertyDeclarationTypes = { enabled = true },
+          variableTypes = { enabled = false },
+        },
+      },
+      javascript = {
+        updateImportsOnFileMove = { enabled = 'always' },
+        suggest = {
+          completeFunctionCalls = true,
+        },
+        inlayHints = {
+          enumMemberValues = { enabled = true },
+          functionLikeReturnTypes = { enabled = true },
+          parameterNames = { enabled = 'literals' },
+          parameterTypes = { enabled = true },
+          propertyDeclarationTypes = { enabled = true },
+          variableTypes = { enabled = false },
+        },
+      },
+    },
+  },
 
   stylua = {}, -- Used to format Lua code
 
