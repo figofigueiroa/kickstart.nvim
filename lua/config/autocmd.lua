@@ -79,3 +79,10 @@ vim.api.nvim_create_autocmd('User', {
     end
   end,
 })
+
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+  once = true, -- só dispara na primeira vez, depois some
+    callback = function()
+    require("statusline").setup()
+  end,
+})
