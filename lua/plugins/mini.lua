@@ -3,6 +3,7 @@
 vim.pack.add {
   Gh 'nvim-mini/mini.icons',
   Gh 'nvim-mini/mini.ai',
+  Gh 'nvim-mini/mini.jump',
   Gh 'nvim-mini/mini.statuscolumn',
   Gh 'nvim-mini/mini.surround',
   Gh 'nvim-mini/mini.pairs',
@@ -10,7 +11,6 @@ vim.pack.add {
   Gh 'nvim-mini/mini.align',
   Gh 'nvim-mini/mini.animate',
   Gh 'nvim-mini/mini.statusline',
-  Gh 'JulienZD/copilot-statusline.nvim',
 }
 
 -- If a nerd font is available, load the icons module for pretty icons in various plugins.
@@ -54,7 +54,6 @@ On_event('VimEnter', function()
     local location = MiniStatusline.section_location { trunc_width = 75 }
     local search = MiniStatusline.section_searchcount { trunc_width = 75 }
     local cc = MiniStatusline.section_codecompanion { trunc_width = 75 }
-    local copilot = require('copilot-statusline').section_copilot { trunc_width = 75 }
 
     return MiniStatusline.combine_groups {
       { hl = mode_hl, strings = { mode } },
@@ -63,7 +62,6 @@ On_event('VimEnter', function()
       { hl = 'MiniStatuslineFilename', strings = { filename } },
       '%=',
       { hl = 'DiagnosticWarn', strings = { cc } },
-      { hl = 'MiniStatuslineCopilot', strings = { copilot } },
       { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
       { hl = mode_hl, strings = { search, location } },
     }
@@ -120,6 +118,8 @@ On_event('VimEnter', function()
       set = function(state) vim.g.minianimate_disable = not state end,
     }):map '<leader>ua'
   end
+
+  require('mini.jump').setup {}
 
   -- [[ mini.diff ]]
   -- Git diff visualization

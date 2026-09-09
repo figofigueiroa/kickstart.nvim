@@ -6,7 +6,7 @@ Later(function()
   local lint = require 'lint'
   lint.linters_by_ft = {
     python = { 'ruff' },
-    markdown = { 'markdownlint' }, -- Make sure to install `markdownlint` via mason / npm
+    markdown = { 'markdownlint-cli2' }, -- Make sure to install `markdownlint` via mason / npm
   }
 
   -- To allow other plugins to add linters to require('lint').linters_by_ft,

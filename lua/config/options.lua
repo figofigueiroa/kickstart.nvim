@@ -3,6 +3,7 @@
 -- Core Neovim settings, leaders, options
 -- ============================================================
 vim.g.start_time = vim.fn.reltime()
+vim.g.neovide_scale_factor = 0.5
 do
   -- Enable faster startup by caching compiled Lua modules
   vim.loader.enable()
