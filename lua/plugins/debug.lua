@@ -34,10 +34,10 @@ local function get_args(config)
 end
 
 local leader_d_keymaps = {
-  { '<leader>dB', function() require('dap').set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = 'Breakpoint Condition' },
+  { '<leader>dB', function() require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ') end, desc = 'Breakpoint Condition' },
   { '<leader>db', function() require('dap').toggle_breakpoint() end, desc = 'Toggle Breakpoint' },
   { '<leader>dc', function() require('dap').continue() end, desc = 'Run/Continue' },
-  { '<leader>da', function() require('dap').continue({ before = get_args }) end, desc = 'Run with Args' },
+  { '<leader>da', function() require('dap').continue { before = get_args } end, desc = 'Run with Args' },
   { '<leader>dC', function() require('dap').run_to_cursor() end, desc = 'Run to Cursor' },
   { '<leader>dg', function() require('dap').goto_() end, desc = 'Go to Line (No Execute)' },
   { '<leader>di', function() require('dap').step_into() end, desc = 'Step Into' },
@@ -81,7 +81,7 @@ Later(function()
     ensure_installed = {
       -- Update this to ensure that you have the debuggers for the langs you want
       -- 'delve',
-      'netcoredbg'
+      'netcoredbg',
     },
   }
 
@@ -89,7 +89,7 @@ Later(function()
     winbar = {
       controls = {
         enabled = true,
-        position = "left",
+        position = 'left',
       },
     },
   }
@@ -97,8 +97,11 @@ Later(function()
   -- .NET (C#) debug configuration using netcoredbg
   dap.adapters.coreclr = {
     type = 'executable',
-    command = vim.fn.stdpath 'data' .. '/mason/bin/netcoredbg',
+    command = vim.fn.stdpath 'data' .. '/mason/bin/netcoredbg.cmd',
     args = { '--interpreter=vscode' },
+    options = {
+      detached = false, -- This prevents the blank terminal launch issue on Windows
+    },
   }
 
   -- Alias so both 'cs' and 'fsharp' filetype work
@@ -116,9 +119,7 @@ Later(function()
         -- Look for the project dll inside bin/Debug
         local dlls = vim.fn.glob(cwd .. '/bin/Debug/**/*.dll', true, true)
         -- Filter out test runners and other noise
-        dlls = vim.tbl_filter(function(f)
-          return not f:match 'testhost' and not f:match 'Microsoft' and not f:match 'xunit'
-        end, dlls)
+        dlls = vim.tbl_filter(function(f) return not f:match 'testhost' and not f:match 'Microsoft' and not f:match 'xunit' end, dlls)
         if #dlls == 1 then
           return dlls[1]
         elseif #dlls > 1 then
@@ -147,7 +148,5 @@ Later(function()
   -- Setup dap config by VsCode launch.json file
   local vscode = require 'dap.ext.vscode'
   local json = require 'plenary.json'
-  vscode.json_decode = function(str)
-    return vim.json.decode(json.json_strip_comments(str))
-  end
+  vscode.json_decode = function(str) return vim.json.decode(json.json_strip_comments(str)) end
 end)
