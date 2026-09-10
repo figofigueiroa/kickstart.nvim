@@ -60,7 +60,20 @@ require('snacks').setup {
     },
   },
   explorer = { enabled = false },
-  indent = { enabled = true, scope = { char = '╎' } },
+  -- indent = { enabled = true, scope = { char = '╎' } },
+  indent = {
+    indent = {
+      enabled = false, -- enable indent guides
+    },
+    scope = {
+      enabled = true, -- enable highlighting the current scope
+      priority = 200,
+      char = '╎',
+      underline = false, -- underline the start of the scope
+      only_current = true, -- only show scope in the current window
+      hl = 'SnacksIndentScope', ---@type string|string[] hl group for scopes
+    },
+  },
   input = { enabled = false },
   notifier = {
     enabled = true,
@@ -95,9 +108,7 @@ vim.keymap.set('n', '<leader>sq', function() Snacks.picker.qflist() end, { desc 
 vim.keymap.set('n', '<leader>s"', function() Snacks.picker.registers() end, { desc = '[S]earch [R]egisters' })
 vim.keymap.set('n', '<leader>st', function() Snacks.picker.todo_comments() end, { desc = '[S]earch [T]odo Comments' })
 vim.keymap.set('n', '<leader>sT', function() Snacks.picker.todo_comments { keywords = { 'TODO', 'FIX', 'FIXME', 'NOTE' } } end, { desc = 'Todo/Fix/Fixme' })
-vim.keymap.set("n", "<leader>sn", function()
-  Snacks.picker.notifications()
-end, { desc = "Search Notification History" })
+vim.keymap.set('n', '<leader>sn', function() Snacks.picker.notifications() end, { desc = 'Search Notification History' })
 vim.keymap.set('n', '<leader>gL', function() Snacks.picker.git_log() end, { desc = 'Git Log (cwd)' })
 vim.keymap.set('n', '<leader>gb', function() Snacks.picker.git_log_line() end, { desc = 'Git Blame Line' })
 vim.keymap.set('n', '<leader>gf', function() Snacks.picker.git_log_file() end, { desc = 'Git Current File History' })
@@ -115,14 +126,19 @@ vim.keymap.set(
 )
 
 -- Shortcut for searching your Neovim configuration files
-vim.keymap.set('n', '<leader>snc', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true } end, { desc = '[S]earch [N]eovim [C]onfig files' })
+vim.keymap.set(
+  'n',
+  '<leader>snc',
+  function() Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true } end,
+  { desc = '[S]earch [N]eovim [C]onfig files' }
+)
 
 -- ============================================================
 -- Obsidian vault tags picker (search only in tags)
 -- ============================================================
 do
   local function pick_vault_tags()
-    local vault = vim.fn.expand('~/Documents/notes/vault')
+    local vault = vim.fn.expand '~/Documents/notes/vault'
     Snacks.picker.pick {
       title = 'Vault Tags',
       prompt = 'Tag? ',
@@ -138,26 +154,26 @@ do
 
         local inline = 'rg --no-heading -o -N "#[A-Za-z0-9_/+%.-]+" ' .. vim.fn.fnameescape(vault)
         for line in io.popen(inline):lines() do
-          local file, tag = line:match('^(.-):#([A-Za-z0-9_/+%.-]+)')
+          local file, tag = line:match '^(.-):#([A-Za-z0-9_/+%.-]+)'
           if file then add(file, tag) end
         end
 
         local fm = 'rg --no-heading -n -A 40 "^tags:" ' .. vim.fn.fnameescape(vault)
         local cur
         for line in io.popen(fm):lines() do
-          local file, rest = line:match('^(.-):%d+:tags:%s*(.*)$')
+          local file, rest = line:match '^(.-):%d+:tags:%s*(.*)$'
           if file then
             cur = file
             local arr = rest:gsub('[%[%]]', '')
-            for tag in (arr .. ' '):gmatch('[%w_/+-]+') do
+            for tag in (arr .. ' '):gmatch '[%w_/+-]+' do
               add(cur, tag)
             end
           elseif cur then
-            local content = line:match('^.-%d+%-(.*)$')
-            if content and content:match('^%s*%-%-%-') then
+            local content = line:match '^.-%d+%-(.*)$'
+            if content and content:match '^%s*%-%-%-' then
               cur = nil
             elseif content then
-              local bullet = content:match('^%s*%-%s*(.-)%s*[,]?$')
+              local bullet = content:match '^%s*%-%s*(.-)%s*[,]?$'
               if bullet then add(cur, bullet) end
             end
           end
@@ -186,8 +202,8 @@ Snacks.toggle.indent():map '<leader>ug'
 Snacks.toggle.scroll():map '<leader>uS'
 Snacks.toggle.profiler():map '<leader>dpp'
 Snacks.toggle.profiler_highlights():map '<leader>dph'
-Snacks.toggle.zoom():map("<leader>wz"):map("<leader>uZ")
-Snacks.toggle.zen():map("<leader>uz")
+Snacks.toggle.zoom():map('<leader>wz'):map '<leader>uZ'
+Snacks.toggle.zen():map '<leader>uz'
 -- Snacks.toggle.animate():map '<leader>ua'
 
 -- ============================================================
@@ -229,4 +245,3 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', '<a-p>', function() Snacks.words.jump(-vim.v.count1, true) end, { desc = 'Prev Reference' })
   end,
 })
-

@@ -11,16 +11,22 @@
 --     comments = { italic = false }, -- Disable italics in comments
 --   },
 -- }
-vim.pack.add { Gh 'rose-pine/neovim' }
-require('rose-pine').setup {
-  dim_inactive_windows = true,
-  extend_background_behind_borders = true,
-  styles = {
-    bold = false,
-    italic = false,
-    transparency = true,
-  },
-}
+-- vim.pack.add { Gh 'rose-pine/neovim' }
+-- require('rose-pine').setup {
+--   dim_inactive_windows = true,
+--   extend_background_behind_borders = true,
+--   styles = {
+--     bold = true,
+--     italic = false,
+--     transparency = true,
+--   },
+-- }
+--
+-- -- Load the colorscheme
+-- vim.cmd 'colorscheme rose-pine'
+
+vim.pack.add { Gh 'dchinmay2/alabaster.nvim' }
 
 -- Load the colorscheme
-vim.cmd 'colorscheme rose-pine'
+vim.g.alabaster_floatborder = true
+vim.cmd 'colorscheme alabaster'
