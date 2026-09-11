@@ -24,123 +24,129 @@
 -- If you're wondering about lsp vs treesitter, you can check out the wonderfully
 -- and elegantly composed help section, `:help lsp-vs-treesitter`
 
+vim.pack.add {
+  Config.gh 'neovim/nvim-lspconfig',
+  Config.gh 'mason-org/mason.nvim',
+  Config.gh 'mason-org/mason-lspconfig.nvim',
+  Config.gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
+  Config.gh 'mfussenegger/nvim-jdtls',
+}
+
 --  This function gets run when an LSP attaches to a particular buffer.
 --    That is to say, every time a new file is opened that is associated with
 --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
 --    function will be executed to configure the current buffer
-vim.api.nvim_create_autocmd('LspAttach', {
-  group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
-  callback = function(event)
-    -- NOTE: Remember that Lua is a real programming language, and as such it is possible
-    -- to define small helper and utility functions so you don't have to repeat yourself.
-    --
-    -- In this case, we create a function that lets us more easily define mappings specific
-    -- for LSP related items. It sets the mode, buffer and description for us each time.
-    local map = function(keys, func, desc, mode)
-      mode = mode or 'n'
-      vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
-    end
+Config.new_autocmd('LspAttach', '*', function(event)
+  local client = vim.lsp.get_client_by_id(event.data.client_id)
 
-    -- Rename the variable under your cursor.
-    --  Most Language Servers support renaming across files, etc.
-    map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
+  -- NOTE: Remember that Lua is a real programming language, and as such it is possible
+  -- to define small helper and utility functions so you don't have to repeat yourself.
+  --
+  -- In this case, we create a function that lets us more easily define mappings specific
+  -- for LSP related items. It sets the mode, buffer and description for us each time.
+  local map = function(keys, func, desc, mode)
+    mode = mode or 'n'
+    vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+  end
 
-    -- Execute a code action, usually your cursor needs to be on top of an error
-    -- or a suggestion from your LSP for this to activate.
-    map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
+  -- Rename the variable under your cursor.
+  --  Most Language Servers support renaming across files, etc.
+  map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
 
-    -- WARN: This is not Goto Definition, this is Goto Declaration.
-    --  For example, in C this would take you to the header.
-    map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+  -- Execute a code action, usually your cursor needs to be on top of an error
+  --  or a suggestion from your LSP for this to activate.
+  map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
 
-    map('grd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+  -- WARN: This is not Goto Definition, this is Goto Declaration.
+  --  For example, in C this would take you to the header.
+  map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
-    -- TypeScript-specific keymaps (LazyVim-style)
-    if client and client.name == 'vtsls' then
-      map('<leader>co', function()
-        vim.lsp.buf.code_action {
-          context = { only = { 'source.organizeImports' } },
-          apply = true,
-        }
-      end, '[O]rganize Imports')
-      map('<leader>cm', function()
-        vim.lsp.buf.code_action {
-          context = { only = { 'source.addMissingImports.ts' } },
-          apply = true,
-        }
-      end, 'Add [M]issing Imports')
-      map('<leader>cu', function()
-        vim.lsp.buf.code_action {
-          context = { only = { 'source.removeUnused.ts' } },
-          apply = true,
-        }
-      end, 'Remove [U]nused Imports')
-      map('<leader>cd', function()
-        vim.lsp.buf.code_action {
-          context = { only = { 'source.fixAll.ts' } },
-          apply = true,
-        }
-      end, '[F]ix All Diagnostics')
-      map('<leader>cV', function()
-        vim.lsp.buf.execute_command { command = 'typescript.selectTypeScriptVersion' }
-      end, 'Select TS Workspace Version')
-      map('gD', function()
-        local params = vim.lsp.util.make_position_params()
-        vim.lsp.buf.execute_command {
-          command = 'typescript.goToSourceDefinition',
-          arguments = { params.textDocument.uri, params.position },
-        }
-      end, 'Goto Source [D]efinition')
-      map('gR', function()
-        vim.lsp.buf.execute_command {
-          command = 'typescript.findAllFileReferences',
-          arguments = { vim.uri_from_bufnr(0) },
-        }
-      end, 'File [R]eferences')
-    end
+  map('grd', vim.lsp.buf.definition, '[G]oto [D]efinition')
 
-    -- The following two autocommands are used to highlight references of the
-    -- word under your cursor when your cursor rests there for a little while.
-    --    See `:help CursorHold` for information about when this is executed
-    --
-    -- When you move your cursor, the highlights will be cleared (the second autocommand).
-    local client = vim.lsp.get_client_by_id(event.data.client_id)
-    if client and client:supports_method('textDocument/documentHighlight', event.buf) then
-      local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
-      vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-        buffer = event.buf,
-        group = highlight_augroup,
-        callback = vim.lsp.buf.document_highlight,
-      })
+  -- TypeScript-specific keymaps (LazyVim-style)
+  if client and client.name == 'vtsls' then
+    map('<leader>co', function()
+      vim.lsp.buf.code_action {
+        context = { only = { 'source.organizeImports' } },
+        apply = true,
+      }
+    end, '[O]rganize Imports')
+    map('<leader>cm', function()
+      vim.lsp.buf.code_action {
+        context = { only = { 'source.addMissingImports.ts' } },
+        apply = true,
+      }
+    end, 'Add [M]issing Imports')
+    map('<leader>cu', function()
+      vim.lsp.buf.code_action {
+        context = { only = { 'source.removeUnused.ts' } },
+        apply = true,
+      }
+    end, 'Remove [U]nused Imports')
+    map('<leader>cd', function()
+      vim.lsp.buf.code_action {
+        context = { only = { 'source.fixAll.ts' } },
+        apply = true,
+      }
+    end, '[F]ix All Diagnostics')
+    map('<leader>cV', function()
+      vim.lsp.buf.execute_command { command = 'typescript.selectTypeScriptVersion' }
+    end, 'Select TS Workspace Version')
+    map('gD', function()
+      local params = vim.lsp.util.make_position_params()
+      vim.lsp.buf.execute_command {
+        command = 'typescript.goToSourceDefinition',
+        arguments = { params.textDocument.uri, params.position },
+      }
+    end, 'Goto Source [D]efinition')
+    map('gR', function()
+      vim.lsp.buf.execute_command {
+        command = 'typescript.findAllFileReferences',
+        arguments = { vim.uri_from_bufnr(0) },
+      }
+    end, 'File [R]eferences')
+  end
 
-      vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-        buffer = event.buf,
-        group = highlight_augroup,
-        callback = vim.lsp.buf.clear_references,
-      })
+  -- The following two autocommands are used to highlight references of the
+  -- word under your cursor when your cursor rests there for a little while.
+  --    See `:help CursorHold` for information on when this is executed
+  --
+  -- When you move your cursor, the highlights will be cleared (the second autocommand).
+  if client and client:supports_method('textDocument/documentHighlight', event.buf) then
+    local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
+    vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+      buffer = event.buf,
+      group = highlight_augroup,
+      callback = vim.lsp.buf.document_highlight,
+    })
 
-      vim.api.nvim_create_autocmd('LspDetach', {
-        group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
-        callback = function(event2)
-          vim.lsp.buf.clear_references()
-          vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
-        end,
-      })
-    end
+    vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+      buffer = event.buf,
+      group = highlight_augroup,
+      callback = vim.lsp.buf.clear_references,
+    })
 
-    -- The following code creates a keymap to toggle inlay hints in your
-    -- code, if the language server you are using supports them
-    --
-    -- This may be unwanted, since they displace some of your code
-    if client and client:supports_method('textDocument/inlayHint', event.buf) then
-      map('<leader>uh', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end, '[U]i Toggle Inlay [H]ints')
-    end
-  end,
-})
+    vim.api.nvim_create_autocmd('LspDetach', {
+      group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
+      callback = function(event2)
+        vim.lsp.buf.clear_references()
+        vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
+      end,
+    })
+  end
+
+  -- The following code creates a keymap to toggle inlay hints in your
+  -- code, if the language server you are using supports them
+  --
+  -- This may be unwanted, since they displace some of your code
+  if client and client:supports_method('textDocument/inlayHint', event.buf) then
+    map('<leader>uh', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end, '[U]i Toggle Inlay [H]ints')
+  end
+end, 'Custom LSP attach')
 
 -- Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
---  See `:help lsp-config` for information about keys and how to configure
+--  See `:help lsp-config` for information on keys and how to configure
 ---@type table<string, vim.lsp.Config>
 local servers = {
   -- clangd = {},
@@ -243,15 +249,7 @@ local servers = {
   },
 }
 
-vim.pack.add {
-  Gh 'neovim/nvim-lspconfig',
-  Gh 'mason-org/mason.nvim',
-  Gh 'mason-org/mason-lspconfig.nvim',
-  Gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
-  Gh 'mfussenegger/nvim-jdtls', -- novo
-}
-
-Later(function()
+Config.later(function()
   -- Automatically install LSPs and related tools to stdpath for Neovim
   require('mason').setup {}
 

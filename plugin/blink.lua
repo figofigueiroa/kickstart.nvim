@@ -1,38 +1,28 @@
 -- [[ Snippet Engine + Autocomplete Engine ]]
--- Loaded on first InsertEnter — nothing here is needed before the user starts typing.
+-- Loaded after startup — nothing here is needed before the user starts typing.
 
 -- NOTE: You can also specify plugin using a version range for its git tag.
 --  See `:help vim.version.range()` for more info
-vim.pack.add { { src = Gh 'L3MON4D3/LuaSnip', version = vim.version.range '2.*' } }
+vim.pack.add {
+  { src = Config.gh 'L3MON4D3/LuaSnip', version = vim.version.range '2.*' },
+  Config.gh 'rafamadriz/friendly-snippets',
+  { src = Config.gh 'saghen/blink.cmp', version = vim.version.range '1.*' },
+}
 
 -- `friendly-snippets` contains a variety of premade snippets.
 --    See the README about individual language/framework/plugin snippets:
 --    https://github.com/rafamadriz/friendly-snippets
-vim.pack.add { Gh 'rafamadriz/friendly-snippets' }
-
--- [[ Autocomplete Engine ]]
-vim.pack.add { { src = Gh 'saghen/blink.cmp', version = vim.version.range '1.*' } }
-
-On_event('InsertEnter', function()
+Config.on_event('InsertEnter', function()
   require('luasnip').setup {}
   require('luasnip.loaders.from_vscode').lazy_load()
 end)
 
-Later(function()
+Config.later(function()
   require('blink.cmp').setup {
     keymap = {
       -- 'default' (recommended) for mappings similar to built-in completions
-      --   <c-y> to accept ([y]es) the completion.
-      --    This will auto-import if your LSP supports it.
-      --    This will expand snippets if the LSP sent a snippet.
-      -- 'super-tab' for tab to accept
-      -- 'enter' for enter to accept
-      -- 'none' for no mappings
-      --
-      -- For an understanding of why the 'default' preset is recommended,
-      -- you will need to read `:help ins-completion`
-      --
-      -- No, but seriously. Please read `:help ins-completion`, it is really good!
+      --   `<c-y>` to accept ([y]es) the completion.
+      -- 'super-tab' for tab to accept, 'enter' for enter to accept, 'none' for no mappings
       --
       -- All presets have the following mappings:
       -- <tab>/<s-tab>: move to right/left of your snippet expansion
@@ -43,9 +33,6 @@ Later(function()
       --
       -- See `:help blink-cmp-config-keymap` for defining your own keymap
       preset = 'default',
-
-      -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-      --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
     },
 
     appearance = {
@@ -75,10 +62,7 @@ Later(function()
 
     -- Blink.cmp includes an optional, recommended rust fuzzy matcher,
     -- which automatically downloads a prebuilt binary when enabled.
-    --
-    -- By default, we use the Lua implementation instead, but you may enable
-    -- the rust implementation via `'prefer_rust_with_warning'`
-    --
+    -- By default, we use the Lua implementation instead.
     -- See `:help blink-cmp-config-fuzzy` for more information
     fuzzy = { implementation = 'lua' },
 
@@ -86,3 +70,17 @@ Later(function()
     signature = { enabled = true },
   }
 end)
+
+-- Build LuaSnip's `jsregexp` after install/update
+Config.on_packchanged('LuaSnip', { 'install', 'update' }, function(data)
+  if vim.fn.has 'win32' ~= 1 and vim.fn.executable 'make' == 1 then
+    local result = vim.system({ 'make', 'install_jsregexp' }, { cwd = data.path }):wait()
+    if result.code ~= 0 then
+      local stderr = result.stderr or ''
+      local stdout = result.stdout or ''
+      local output = stderr ~= '' and stderr or stdout
+      if output == '' then output = 'No output from build command.' end
+      vim.notify(('Build failed for LuaSnip:\n%s'):format(output), vim.log.levels.ERROR)
+    end
+  end
+end, 'Build LuaSnip jsregexp')

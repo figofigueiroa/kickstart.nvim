@@ -1,13 +1,14 @@
-vim.pack.add { Gh 'nvim-lua/plenary.nvim' }
+-- [[ codecompanion.nvim ]]
 vim.pack.add {
-  Gh 'olimorris/codecompanion.nvim',
-  Gh 'ravitemer/codecompanion-history.nvim',
-  Gh 'cairijun/codecompanion-agentskills.nvim',
+  Config.gh 'nvim-lua/plenary.nvim',
+  Config.gh 'olimorris/codecompanion.nvim',
+  Config.gh 'ravitemer/codecompanion-history.nvim',
+  Config.gh 'cairijun/codecompanion-agentskills.nvim',
 }
 
 local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
 
-On_event('VimEnter', function()
+Config.on_event('VimEnter', function()
   require('codecompanion').setup {
     interactions = {
       chat = {
@@ -25,26 +26,26 @@ On_event('VimEnter', function()
         },
       },
     },
-extensions = {
-  history = {
-    enabled = true,
-    opts = {
-      dir_to_save = vim.fn.stdpath 'data' .. '/codecompanion_chats.json',
-      auto_generate_title = true,
-      title_generation_opts = {
-        adapter = 'copilot', -- ou 'anthropic', 'openai', etc. — qualquer HTTP adapter que você tenha configurado/API key
-        -- model = 'gpt-4.1-mini', -- opcional: forçar um modelo mais barato só pra título
+    extensions = {
+      history = {
+        enabled = true,
+        opts = {
+          dir_to_save = vim.fn.stdpath 'data' .. '/codecompanion_chats.json',
+          auto_generate_title = true,
+          title_generation_opts = {
+            adapter = 'copilot', -- ou 'anthropic', 'openai', etc. — qualquer HTTP adapter que você tenha configurado/API key
+            -- model = 'gpt-4.1-mini', -- opcional: forçar um modelo mais barato só pra título
+          },
+        },
+      },
+      agentskills = {
+        opts = {
+          paths = {
+            { '~/.config/nvim/skills', recursive = true },
+          },
+        },
       },
     },
-  },
-  agentskills = {
-    opts = {
-      paths = {
-        { '~/.config/nvim/skills', recursive = true },
-      },
-    },
-  },
-},
   }
 end)
 
@@ -78,5 +79,3 @@ map(
 
 -- Expande "cc" em "CodeCompanion" na linha de comando (opcional, mas útil)
 vim.cmd [[cab cc CodeCompanion]]
-
-

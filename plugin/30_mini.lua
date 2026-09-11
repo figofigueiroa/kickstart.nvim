@@ -1,24 +1,16 @@
 -- [[ mini.nvim ]]
---  Individual mini modules loaded separately instead of the full library.
-vim.pack.add {
-  Gh 'nvim-mini/mini.icons',
-  Gh 'nvim-mini/mini.ai',
-  Gh 'nvim-mini/mini.jump',
-  Gh 'nvim-mini/mini.statuscolumn',
-  Gh 'nvim-mini/mini.surround',
-  Gh 'nvim-mini/mini.pairs',
-  Gh 'nvim-mini/mini.diff',
-  Gh 'nvim-mini/mini.align',
-  Gh 'nvim-mini/mini.animate',
-  Gh 'nvim-mini/mini.statusline',
-}
+--  The whole 'mini.nvim' library is added in `init.lua`.
+--  This file only sets up the modules in use.
 
 -- If a nerd font is available, load the icons module for pretty icons in various plugins.
-if vim.g.have_nerd_font then
-  require('mini.icons').setup()
-  -- Used for backwards compatibility with plugins that require `nvim-web-devicons` (e.g. telescope.nvim)
-  MiniIcons.mock_nvim_web_devicons()
-end
+-- NOTE: Must run after the colorscheme is applied (see `25_colorscheme.lua`).
+Config.now(function()
+  if vim.g.have_nerd_font then
+    require('mini.icons').setup()
+    -- Used for backwards compatibility with plugins that require `nvim-web-devicons`
+    MiniIcons.mock_nvim_web_devicons()
+  end
+end)
 
 -- [[ Better Around/Inside textobjects]]
 --
@@ -26,8 +18,7 @@ end
 --  - va)  - [V]isually select [A]round [)]paren
 --  - yiiq - [Y]ank [I]nside [I]+1 [Q]uote
 --  - ci'  - [C]hange [I]nside [']quote
-
-On_event('VimEnter', function()
+Config.on_event('VimEnter', function()
   require('mini.statuscolumn').setup()
 
   local statusline = require 'mini.statusline'
@@ -67,12 +58,8 @@ On_event('VimEnter', function()
     }
   end
 
-  -- resto do bloco (mini.animate, mini.diff, etc.) continua igual
-
-  -- -- [[ mini.animate ]]
-  -- -- Neovim animations for scroll, resize, cursor, etc.
-  -- instala o plugin (ajuste conforme seu gerenciamento de vim.pack)
-
+  -- [[ mini.animate ]]
+  -- Neovim animations for scroll, resize, cursor, etc.
   -- só carrega/configura se não estiver no neovide
   if vim.g.neovide == nil then
     -- don't use animate when scrolling with the mouse
@@ -84,13 +71,6 @@ On_event('VimEnter', function()
         return key
       end, { expr = true })
     end
-
-    -- vim.api.nvim_create_autocmd("FileType", {
-    --   pattern = "grug-far",
-    --   callback = function()
-    --     vim.b.minianimate_disable = true
-    --   end,
-    -- })
 
     local animate = require 'mini.animate'
     animate.setup {
@@ -111,7 +91,7 @@ On_event('VimEnter', function()
       },
     }
 
-    -- mapeamento de toggle, sem depender de VeryLazy/keymaps.lua do LazyVim
+    -- mapeamento de toggle, sem depender de keymaps de LazyVim
     Snacks.toggle({
       name = 'Mini Animate',
       get = function() return not vim.g.minianimate_disable end,
@@ -129,7 +109,7 @@ On_event('VimEnter', function()
       signs = {
         add = ' ▎',
         change = ' ▎',
-        delete = ' ',
+        delete = ' ',
       },
     },
   }
@@ -157,7 +137,7 @@ end)
 -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
 -- - sd'   - [S]urround [D]elete [']quotes
 -- - sr)'  - [S]urround [R]eplace [)] [']
-On_event('InsertEnter', function()
+Config.on_event('InsertEnter', function()
   require('mini.ai').setup {
     -- NOTE: Avoid conflicts with the built-in incremental selection mappings on Neovim>=0.12 (see `:help treesitter-incremental-selection`)
     mappings = {

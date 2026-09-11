@@ -1,17 +1,12 @@
--- debug.lua
---
+-- [[ DAP: debug.lua ]]
 -- Shows how to use the DAP plugin to debug your code.
---
--- Primarily focused on configuring the debugger for Go, but can
--- be extended to other languages as well. That's why it's called
--- kickstart.nvim and not kitchen-sink.nvim ;)
-
+-- Primarily focused on .NET (netcoredbg), can be extended to other languages.
 vim.pack.add {
-  Gh 'mfussenegger/nvim-dap',
-  Gh 'nvim-neotest/nvim-nio',
-  Gh 'mason-org/mason.nvim',
-  Gh 'jay-babu/mason-nvim-dap.nvim',
-  Gh 'igorlfs/nvim-dap-view',
+  Config.gh 'mfussenegger/nvim-dap',
+  Config.gh 'nvim-neotest/nvim-nio',
+  Config.gh 'mason-org/mason.nvim',
+  Config.gh 'jay-babu/mason-nvim-dap.nvim',
+  Config.gh 'igorlfs/nvim-dap-view',
 }
 
 -- Basic debugging keymaps (function keys)
@@ -58,13 +53,13 @@ for _, km in ipairs(leader_d_keymaps) do
   vim.keymap.set('n', km[1], km[2], { desc = 'Debug: ' .. km.desc })
 end
 
-Later(function()
+Config.later(function()
   local dap = require 'dap'
 
   vim.fn.sign_define('DapStopped', { text = '󰁕 ', texthl = 'DiagnosticWarn', linehl = 'DapStoppedLine', priority = 20 })
-  vim.fn.sign_define('DapBreakpoint', { text = ' ', texthl = 'DiagnosticInfo', priority = 20 })
-  vim.fn.sign_define('DapBreakpointCondition', { text = ' ', texthl = 'DiagnosticInfo', priority = 20 })
-  vim.fn.sign_define('DapBreakpointRejected', { text = ' ', texthl = 'DiagnosticError', priority = 20 })
+  vim.fn.sign_define('DapBreakpoint', { text = '󰝥 ', texthl = 'DiagnosticInfo', priority = 20 })
+  vim.fn.sign_define('DapBreakpointCondition', { text = '󰟃 ', texthl = 'DiagnosticInfo', priority = 20 })
+  vim.fn.sign_define('DapBreakpointRejected', { text = '󰅖 ', texthl = 'DiagnosticError', priority = 20 })
   vim.fn.sign_define('DapLogPoint', { text = '.>', texthl = 'DiagnosticInfo', priority = 20 })
 
   require('mason-nvim-dap').setup {

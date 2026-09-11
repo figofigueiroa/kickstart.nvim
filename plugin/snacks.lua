@@ -5,29 +5,31 @@
 -- Two important keymaps in a picker:
 --  - Insert mode: <c-/>
 --  - Normal mode: ?
+vim.pack.add { Config.gh 'folke/snacks.nvim' }
 
-vim.pack.add { Gh 'folke/snacks.nvim' }
-vim.g.snacks_animate = true
--- See `:help snacks.nvim` and `:help snacks-picker`
-require('snacks').setup {
-  -- snacks.picker overrides vim.ui.select automatically
-  picker = { enabled = true },
+Config.now(function()
+  vim.g.snacks_animate = true
 
-  bigfile = { enabled = true },
-  dashboard = {
-    preset = {
-      pick = nil,
-      ---@type snacks.dashboard.Item[]
-      keys = {
-        { icon = ' ', key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
-        { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
-        { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
-        { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
-        { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
-        { icon = ' ', key = 's', desc = 'Restore Session', section = 'session' },
-        { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
-      },
-      header = [[
+  -- See `:help snacks.nvim` and `:help snacks-picker`
+  require('snacks').setup {
+    -- snacks.picker overrides vim.ui.select automatically
+    picker = { enabled = true },
+
+    bigfile = { enabled = true },
+    dashboard = {
+      preset = {
+        pick = nil,
+        ---@type snacks.dashboard.Item[]
+        keys = {
+          { icon = ' ', key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
+          { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
+          { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
+          { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
+          { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
+          { icon = ' ', key = 's', desc = 'Restore Session', section = 'session' },
+          { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
+        },
+        header = [[
                                                                              
                ████ ██████           █████      ██                     
               ███████████             █████                             
@@ -37,54 +39,74 @@ require('snacks').setup {
           ███████████ ███    ███ █████████ █████ █████ ████ █████  
          ██████  █████████████████████ ████ █████ █████ ████ ██████ 
       ]],
-    },
-    sections = {
-      { section = 'header' },
-      {
-        section = 'keys',
-        indent = 1,
-        padding = 1,
       },
-      { section = 'recent_files', icon = ' ', title = 'Recent Files', indent = 3, padding = 2 },
-      {
-        text = (function()
-          if not vim.g.start_time then return { { 'Startup: n/a', hl = 'SnacksDashboardFooter' } } end
-          local elapsed = vim.fn.reltimefloat(vim.fn.reltime(vim.g.start_time)) * 1000
-          return {
-            { '⚡ ', hl = 'SnacksDashboardIcon' },
-            { string.format('Startup: %.2fms', elapsed), hl = 'SnacksDashboardFooter' },
-          }
-        end)(),
-        padding = 1,
+      sections = {
+        { section = 'header' },
+        {
+          section = 'keys',
+          indent = 1,
+          padding = 1,
+        },
+        { section = 'recent_files', icon = ' ', title = 'Recent Files', indent = 3, padding = 2 },
+        {
+          text = (function()
+            if not vim.g.start_time then return { { 'Startup: n/a', hl = 'SnacksDashboardFooter' } } end
+            local elapsed = vim.fn.reltimefloat(vim.fn.reltime(vim.g.start_time)) * 1000
+            return {
+              { '⚡ ', hl = 'SnacksDashboardIcon' },
+              { string.format('Startup: %.2fms', elapsed), hl = 'SnacksDashboardFooter' },
+            }
+          end)(),
+          padding = 1,
+        },
       },
     },
-  },
-  explorer = { enabled = false },
-  -- indent = { enabled = true, scope = { char = '╎' } },
-  indent = {
+    explorer = { enabled = false },
+    -- indent = { enabled = true, scope = { char = '╎' } },
     indent = {
-      enabled = false, -- enable indent guides
+      indent = {
+        enabled = false, -- enable indent guides
+      },
+      scope = {
+        enabled = true, -- enable highlighting the current scope
+        priority = 200,
+        char = '╎',
+        underline = false, -- underline the start of the scope
+        only_current = true, -- only show scope in the current window
+        hl = 'SnacksIndentScope', ---@type string|string[] hl group for scopes
+      },
     },
-    scope = {
-      enabled = true, -- enable highlighting the current scope
-      priority = 200,
-      char = '╎',
-      underline = false, -- underline the start of the scope
-      only_current = true, -- only show scope in the current window
-      hl = 'SnacksIndentScope', ---@type string|string[] hl group for scopes
+    input = { enabled = false },
+    notifier = {
+      enabled = true,
+      timeout = 3000,
     },
-  },
-  input = { enabled = false },
-  notifier = {
-    enabled = true,
-    timeout = 3000,
-  },
-  quickfile = { enabled = true },
-  scope = { enabled = true },
-  scroll = { enabled = false },
-  statuscolumn = { enabled = false },
-  words = { enabled = false },
-}
+    quickfile = { enabled = true },
+    scope = { enabled = true },
+    scroll = { enabled = false },
+    statuscolumn = { enabled = false },
+    words = { enabled = false },
+  }
+
+  -- ============================================================
+  -- Toggles
+  -- ============================================================
+  Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>us'
+  Snacks.toggle.option('wrap', { name = 'Wrap' }):map '<leader>uw'
+  Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):map '<leader>uL'
+  Snacks.toggle.diagnostics():map '<leader>ud'
+  Snacks.toggle.line_number():map '<leader>ul'
+  Snacks.toggle.option('conceallevel', { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2, name = 'Conceal Level' }):map '<leader>uc'
+  Snacks.toggle.treesitter():map '<leader>uT'
+  Snacks.toggle.dim():map '<leader>uD'
+  Snacks.toggle.indent():map '<leader>ug'
+  Snacks.toggle.scroll():map '<leader>uS'
+  Snacks.toggle.profiler():map '<leader>dpp'
+  Snacks.toggle.profiler_highlights():map '<leader>dph'
+  Snacks.toggle.zoom():map('<leader>wz'):map '<leader>uZ'
+  Snacks.toggle.zen():map '<leader>uz'
+  -- Snacks.toggle.animate():map '<leader>ua'
+end)
 
 -- ============================================================
 -- Picker keymaps
@@ -188,60 +210,38 @@ do
 end
 
 -- ============================================================
--- Toggles
--- ============================================================
-Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>us'
-Snacks.toggle.option('wrap', { name = 'Wrap' }):map '<leader>uw'
-Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):map '<leader>uL'
-Snacks.toggle.diagnostics():map '<leader>ud'
-Snacks.toggle.line_number():map '<leader>ul'
-Snacks.toggle.option('conceallevel', { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2, name = 'Conceal Level' }):map '<leader>uc'
-Snacks.toggle.treesitter():map '<leader>uT'
-Snacks.toggle.dim():map '<leader>uD'
-Snacks.toggle.indent():map '<leader>ug'
-Snacks.toggle.scroll():map '<leader>uS'
-Snacks.toggle.profiler():map '<leader>dpp'
-Snacks.toggle.profiler_highlights():map '<leader>dph'
-Snacks.toggle.zoom():map('<leader>wz'):map '<leader>uZ'
-Snacks.toggle.zen():map '<leader>uz'
--- Snacks.toggle.animate():map '<leader>ua'
-
--- ============================================================
 -- LSP picker keymaps (buffer-local, on LspAttach)
 -- ============================================================
-vim.api.nvim_create_autocmd('LspAttach', {
-  group = vim.api.nvim_create_augroup('snacks-lsp-attach', { clear = true }),
-  callback = function(event)
-    local buf = event.buf
+Config.new_autocmd('LspAttach', '*', function(event)
+  local buf = event.buf
 
-    vim.keymap.set('n', '<leader>cl', function() Snacks.picker.lsp_config() end, { buffer = buf, desc = 'Lsp Info' })
-    vim.keymap.set('n', 'gr', function() Snacks.picker.lsp_references() end, { buffer = buf, desc = '[G]oto [R]eferences' })
-    vim.keymap.set('n', 'gI', function() Snacks.picker.lsp_implementations() end, { buffer = buf, desc = '[G]oto [I]mplementation' })
-    vim.keymap.set('n', 'gd', function() Snacks.picker.lsp_definitions() end, { buffer = buf, desc = '[G]oto [D]efinition' })
-    -- vim.keymap.set('n', 'gO', function() Snacks.picker.lsp_symbols() end, { buffer = buf, desc = 'Open Document Symbols' })
-    -- vim.keymap.set('n', 'gW', function() Snacks.picker.lsp_workspace_symbols() end, { buffer = buf, desc = 'Open Workspace Symbols' })
-    vim.keymap.set('n', 'gy', function() Snacks.picker.lsp_type_definitions() end, { buffer = buf, desc = '[G]oto T[y]pe Definition' })
-    vim.keymap.set('n', 'gai', function() Snacks.picker.lsp_incoming_calls() end, { buffer = buf, desc = 'C[a]lls Incoming' })
-    vim.keymap.set('n', 'gao', function() Snacks.picker.lsp_outgoing_calls() end, { buffer = buf, desc = 'C[a]lls Outgoing' })
-    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { desc = 'Goto Declaration' })
-    vim.keymap.set('n', 'K', function() vim.lsp.buf.hover() end, { desc = 'Hover' })
-    vim.keymap.set('n', 'gK', function() vim.lsp.buf.signature_help() end, { desc = 'Signature Help' })
-    vim.keymap.set('i', '<C-k>', function() vim.lsp.buf.signature_help() end, { desc = 'Signature Help' })
-    vim.keymap.set({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, { desc = 'Code Action' })
-    vim.keymap.set({ 'n', 'x' }, '<leader>cc', vim.lsp.codelens.run, { desc = 'Run Codelens' })
-    -- vim.keymap.set('n', '<leader>cC', vim.lsp.codelens.refresh, { desc = 'Refresh & Display Codelens' })
-    vim.keymap.set('n', '<leader>cr', vim.lsp.buf.rename, { desc = 'Rename' })
-    vim.keymap.set('n', '<leader>cR', function() Snacks.rename.rename_file() end, { desc = 'Rename File' })
-    vim.keymap.set('n', '<leader>cA', function() vim.lsp.buf.code_action { context = { only = { 'source' } } } end, { desc = 'Source Action' })
-    vim.keymap.set(
-      'n',
-      '<leader>co',
-      function() vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' } } } end,
-      { desc = 'Organize Imports', buffer = buf }
-    )
-    vim.keymap.set('n', ']]', function() Snacks.words.jump(vim.v.count1) end, { desc = 'Next Reference' })
-    vim.keymap.set('n', '[[', function() Snacks.words.jump(-vim.v.count1) end, { desc = 'Prev Reference' })
-    vim.keymap.set('n', '<a-n>', function() Snacks.words.jump(vim.v.count1, true) end, { desc = 'Next Reference' })
-    vim.keymap.set('n', '<a-p>', function() Snacks.words.jump(-vim.v.count1, true) end, { desc = 'Prev Reference' })
-  end,
-})
+  vim.keymap.set('n', '<leader>cl', function() Snacks.picker.lsp_config() end, { buffer = buf, desc = 'Lsp Info' })
+  vim.keymap.set('n', 'gr', function() Snacks.picker.lsp_references() end, { buffer = buf, desc = '[G]oto [R]eferences' })
+  vim.keymap.set('n', 'gI', function() Snacks.picker.lsp_implementations() end, { buffer = buf, desc = '[G]oto [I]mplementation' })
+  vim.keymap.set('n', 'gd', function() Snacks.picker.lsp_definitions() end, { buffer = buf, desc = '[G]oto [D]efinition' })
+  -- vim.keymap.set('n', 'gO', function() Snacks.picker.lsp_symbols() end, { buffer = buf, desc = 'Open Document Symbols' })
+  -- vim.keymap.set('n', 'gW', function() Snacks.picker.lsp_workspace_symbols() end, { buffer = buf, desc = 'Open Workspace Symbols' })
+  vim.keymap.set('n', 'gy', function() Snacks.picker.lsp_type_definitions() end, { buffer = buf, desc = '[G]oto [T]ype Definition' })
+  vim.keymap.set('n', 'gai', function() Snacks.picker.lsp_incoming_calls() end, { buffer = buf, desc = '[C[a]lls Incoming' })
+  vim.keymap.set('n', 'gao', function() Snacks.picker.lsp_outgoing_calls() end, { buffer = buf, desc = 'C[a]lls Outgoing' })
+  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { desc = 'Goto Declaration' })
+  vim.keymap.set('n', 'K', function() vim.lsp.buf.hover() end, { desc = 'Hover' })
+  vim.keymap.set('n', 'gK', function() vim.lsp.buf.signature_help() end, { desc = 'Signature Help' })
+  vim.keymap.set('i', '<C-k>', function() vim.lsp.buf.signature_help() end, { desc = 'Signature Help' })
+  vim.keymap.set({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, { desc = 'Code Action' })
+  vim.keymap.set({ 'n', 'x' }, '<leader>cc', vim.lsp.codelens.run, { desc = 'Run Codelens' })
+  -- vim.keymap.set('n', '<leader>cC', vim.lsp.codelens.refresh, { desc = 'Refresh & Display Codelens' })
+  vim.keymap.set('n', '<leader>cr', vim.lsp.buf.rename, { desc = 'Rename' })
+  vim.keymap.set('n', '<leader>cR', function() Snacks.rename.rename_file() end, { desc = 'Rename File' })
+  vim.keymap.set('n', '<leader>cA', function() vim.lsp.buf.code_action { context = { only = { 'source' } } } end, { desc = 'Source Action' })
+  vim.keymap.set(
+    'n',
+    '<leader>co',
+    function() vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' } } } end,
+    { desc = 'Organize Imports', buffer = buf }
+  )
+  vim.keymap.set('n', ']]', function() Snacks.words.jump(vim.v.count1) end, { desc = 'Next Reference' })
+  vim.keymap.set('n', '[[', function() Snacks.words.jump(-vim.v.count1) end, { desc = 'Prev Reference' })
+  vim.keymap.set('n', '<a-n>', function() Snacks.words.jump(vim.v.count1, true) end, { desc = 'Next Reference' })
+  vim.keymap.set('n', '<a-p>', function() Snacks.words.jump(-vim.v.count1, true) end, { desc = 'Prev Reference' })
+end, 'Snacks LSP picker keymaps')

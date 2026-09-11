@@ -1,23 +1,23 @@
--- [[ gitsigns ]]
+-- [[ gitsigns.nvim ]]
 -- Git signs highlighting text changed since the last commit, and lets
 -- you interactively stage & unstage hunks. Matches LazyVim's config.
-vim.pack.add { Gh 'lewis6991/gitsigns.nvim' }
+vim.pack.add { Config.gh 'lewis6991/gitsigns.nvim' }
 
-Later(function()
+Config.later(function()
   require('gitsigns').setup {
     signs = {
       add = { text = '▎' },
       change = { text = '▎' },
-      delete = { text = '' },
-      topdelete = { text = '' },
+      delete = { text = '' },
+      topdelete = { text = '' },
       changedelete = { text = '▎' },
       untracked = { text = '▎' },
     },
     signs_staged = {
       add = { text = '▎' },
       change = { text = '▎' },
-      delete = { text = '' },
-      topdelete = { text = '' },
+      delete = { text = '' },
+      topdelete = { text = '' },
       changedelete = { text = '▎' },
     },
     on_attach = function(buffer)

@@ -1,6 +1,5 @@
-vim.pack.add {
-  Gh 'folke/sidekick.nvim',
-}
+-- [[ sidekick.nvim ]]
+vim.pack.add { Config.gh 'folke/sidekick.nvim' }
 
 vim.keymap.set('n', '<tab>', function()
   if not require('sidekick').nes_jump_or_apply() then
@@ -8,8 +7,7 @@ vim.keymap.set('n', '<tab>', function()
   end
 end, { expr = true, desc = 'Goto/Apply Next Edit Suggestion' })
 
-
-On_event('InsertEnter', function()
+Config.on_event('InsertEnter', function()
   require('sidekick').setup {
     cli = {
       mux = {

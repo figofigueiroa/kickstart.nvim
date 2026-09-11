@@ -1,58 +1,34 @@
----Because most plugins are hosted on GitHub, you can use the helper
----function to have less repetition in the following sections.
----@param repo string
----@return string
-function Gh(repo) return 'https://github.com/' .. repo end
+-- Define main config table to be able to pass data between scripts
+_G.Config = {}
 
--- ============================================================
--- SECTION 1: OPTIONS
--- Core Neovim settings, leaders, options
--- ============================================================
-require 'config.options'
+-- Define custom autocommand group
+local gr = vim.api.nvim_create_augroup('custom-config', {})
+Config.new_autocmd = function(event, pattern, callback, desc)
+  local opts = { group = gr, pattern = pattern, callback = callback, desc = desc }
+  vim.api.nvim_create_autocmd(event, opts)
+end
 
--- ============================================================
--- SECTION 2: KEYMAPS
--- basic keymaps, moved to lua/config/keymaps.lua
--- ============================================================
-require 'config.keymaps'
+Config.gh = function(repo) return 'https://github.com/' .. repo end
 
--- ============================================================
--- SECTION 3: AUTOCMDS & BUILD HOOKS
--- Highlight on yank, plugin build steps
--- ============================================================
-require 'config.autocmd'
-
--- ============================================================
--- SECTION 4: PLUGIN HELPERS
--- `Later` and `On_event` are scheduling helpers used by the
--- plugin configurations in `lua/plugins/`. They are defined here,
--- before plugins load, so they are available globally.
--- ============================================================
-do
-  -- mini.misc is required for the `Later`/`On_event` helpers, so it is
-  -- installed here rather than in `lua/plugins/mini.lua`.
-  vim.pack.add { Gh 'nvim-mini/mini.misc' }
-  local misc = require 'mini.misc'
-  Later = function(f)
-    vim.schedule(function() misc.safely('later', f) end)
+-- Define custom `vim.pack.add()` hook helper
+Config.on_packchanged = function(plugin_name, kinds, callback, desc)
+  if vim.fn.has('nvim-0.12') == 0 then return end
+  local f = function(ev)
+    local name, kind = ev.data.spec.name, ev.data.kind
+    if not (name == plugin_name and vim.tbl_contains(kinds, kind)) then return end
+    if not ev.data.active then vim.cmd.packadd(plugin_name) end
+    callback(ev.data)
   end
-  On_event = function(ev, f) misc.safely('event:' .. ev, f) end
+  Config.new_autocmd('PackChanged', '*', f, desc)
 end
 
--- ============================================================
--- SECTION 5: PLUGINS
--- Load all plugins from `lua/plugins/`
--- ============================================================
-do
-  -- Load all plugins from `lua/plugins/*.lua`
-  require 'plugins'
-end
+-- Use 'mini.nvim'
+vim.pack.add { Config.gh 'nvim-mini/mini.nvim' }
 
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
-
-
-
-
-
-
+-- Loading helpers
+local misc = require('mini.misc')
+Config.now = function(f) misc.safely('now', f) end
+Config.later = function(f) misc.safely('later', f) end
+Config.now_if_args = vim.fn.argc(-1) > 0 and Config.now or Config.later
+Config.on_event = function(ev, f) misc.safely('event:' .. ev, f) end
+Config.on_filetype = function(ft, f) misc.safely('filetype:' .. ft, f) end

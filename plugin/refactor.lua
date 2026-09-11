@@ -1,4 +1,5 @@
-vim.pack.add { Gh 'ThePrimeagen/refactoring.nvim', Gh 'lewis6991/async.nvim' }
+-- [[ refactoring.nvim ]]
+vim.pack.add { Config.gh 'ThePrimeagen/refactoring.nvim', Config.gh 'lewis6991/async.nvim' }
 
 local map = vim.keymap.set
 
@@ -10,8 +11,4 @@ map('n', '<leader>rc', function() return require('refactoring.debug').cleanup({ 
 map({ 'n', 'x' }, '<leader>rf', function() return require('refactoring').extract_func() end, { desc = 'Extract Function', expr = true })
 map({ 'n', 'x' }, '<leader>rF', function() return require('refactoring').extract_func_to_file() end, { desc = 'Extract Function To File', expr = true })
 map({ 'n', 'x' }, '<leader>rx', function() return require('refactoring').extract_var() end, { desc = 'Extract Variable', expr = true })
-
-On_event('InsertEnter', function()
-  require('refactoring').setup()
-end)
 

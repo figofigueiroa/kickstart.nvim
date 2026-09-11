@@ -1,11 +1,11 @@
 -- [[ conform.nvim ]]
 -- Formatting
-vim.pack.add { Gh 'stevearc/conform.nvim' }
+vim.pack.add { Config.gh 'stevearc/conform.nvim' }
 
 -- Keymap uses require() lazily, so conform is only loaded when the user actually formats.
 vim.keymap.set({ 'n', 'v' }, '<leader>cf', function() require('conform').format { async = true } end, { desc = '[C]onform [F]ormat buffer' })
 
-Later(function()
+Config.later(function()
   require('conform').setup {
     notify_on_error = false,
     format_on_save = function(bufnr)
