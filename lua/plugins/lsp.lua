@@ -64,11 +64,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     map('<leader>cr', vim.lsp.buf.rename, '[R]ename')
     map('<leader>cR', function() Snacks.rename.rename_file() end, '[R]ename File')
     map('<leader>cl', function() Snacks.picker.lsp_config() end, '[L]sp Info')
-    map(
-      '<leader>co',
-      function() vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' } }, apply = true } end,
-      '[O]rganize Imports'
-    )
+    map('<leader>co', function() vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' } }, apply = true } end, '[O]rganize Imports')
 
     -- ========================================================
     -- TypeScript / vtsls (adapted from the LazyVim typescript extra)
@@ -104,12 +100,16 @@ vim.api.nvim_create_autocmd('LspAttach', {
         }, { bufnr = event.buf })
       end, 'Goto Source [D]efinition')
 
-      map('gR', function()
-        client:exec_cmd({
-          command = 'typescript.findAllFileReferences',
-          arguments = { vim.uri_from_bufnr(0) },
-        }, { bufnr = event.buf })
-      end, 'File [R]eferences')
+      map(
+        'gR',
+        function()
+          client:exec_cmd({
+            command = 'typescript.findAllFileReferences',
+            arguments = { vim.uri_from_bufnr(0) },
+          }, { bufnr = event.buf })
+        end,
+        'File [R]eferences'
+      )
     end
 
     -- ========================================================
@@ -197,7 +197,16 @@ local servers = {
   },
 
   marksman = {},
+
   roslyn_ls = {},
+
+  copilot = {
+    settings = {
+      telemetry = {
+        telemetryLevel = 'off',
+      },
+    },
+  },
 
   tinymist = {
     single_file_support = true, -- Fixes LSP attachment in non-Git directories
@@ -221,11 +230,6 @@ local servers = {
       },
     },
   },
-
-  -- NOTE: `stylua = {}` used to live in this table purely so that
-  -- `vim.tbl_keys(servers)` would feed it to mason. Side effect:
-  -- `vim.lsp.enable('stylua')` tried to start a language server that does not
-  -- exist. Formatters/linters now live in `ensure_installed` below instead.
 }
 
 -- ============================================================
@@ -243,9 +247,12 @@ local ensure_installed = {
   'roslyn-language-server',
   'tinymist',
   'jdtls',
+  'copilot-language-server',
   -- formatters / linters
   'stylua',
   'markdownlint-cli2',
+  'biome',
+  'csharpier',
 }
 
 vim.pack.add {

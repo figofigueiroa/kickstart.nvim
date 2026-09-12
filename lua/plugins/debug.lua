@@ -6,6 +6,7 @@
 -- be extended to other languages as well. That's why it's called
 -- kickstart.nvim and not kitchen-sink.nvim ;)
 
+vim.pack.add { Gh 'nvim-lua/plenary.nvim' }
 vim.pack.add {
   Gh 'mfussenegger/nvim-dap',
   Gh 'nvim-neotest/nvim-nio',

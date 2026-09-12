@@ -9,6 +9,7 @@ vim.pack.add { { src = Gh 'L3MON4D3/LuaSnip', version = vim.version.range '2.*' 
 --    See the README about individual language/framework/plugin snippets:
 --    https://github.com/rafamadriz/friendly-snippets
 vim.pack.add { Gh 'rafamadriz/friendly-snippets' }
+vim.pack.add { Gh 'fang2hou/blink-copilot' }
 
 -- [[ Autocomplete Engine ]]
 vim.pack.add { { src = Gh 'saghen/blink.cmp', version = vim.version.range '1.*' } }
@@ -57,16 +58,21 @@ Later(function()
     completion = {
       -- By default, you may press `<c-space>` to show the documentation.
       -- Optionally, set `auto_show = true` to show the documentation after a delay.
-      documentation = { auto_show = false, auto_show_delay_ms = 500 },
+      documentation = { auto_show = true, auto_show_delay_ms = 500 },
     },
 
     sources = {
-      default = { 'lazydev', 'lsp', 'path', 'snippets' },
+      default = { 'lazydev', 'lsp', 'path', 'snippets', 'copilot' },
       providers = {
         lazydev = {
           name = 'LazyDev',
           module = 'lazydev.integrations.blink',
           score_offset = 100, -- above lsp, for require("...") completions
+        },
+        copilot = {
+          name = 'copilot',
+          module = 'blink-copilot',
+          async = true,
         },
       },
     },

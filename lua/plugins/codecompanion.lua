@@ -1,3 +1,6 @@
+local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
+if not is_windows then return end
+
 vim.pack.add { Gh 'nvim-lua/plenary.nvim' }
 vim.pack.add {
   Gh 'olimorris/codecompanion.nvim',
@@ -5,99 +8,63 @@ vim.pack.add {
   Gh 'cairijun/codecompanion-agentskills.nvim',
 }
 
-local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
-
-On_event('VimEnter', function()
-  require('codecompanion').setup {
-    interactions = {
-      cli = {
-        agent = is_windows and 'copilot' or 'opencode',
-        agents = {
-          opencode = {
-            cmd = 'opencode',
-            args = {},
-            description = 'OpenCode CLI',
-            provider = 'terminal',
+On_event(
+  'VimEnter',
+  function()
+    require('codecompanion').setup {
+      interactions = {
+        cli = {
+          agent = 'copilot',
+        },
+        chat = {
+          adapter = 'copilot',
+          slash_commands = {
+            ['file'] = { opts = { provider = 'snacks' } },
+            ['buffer'] = { opts = { provider = 'snacks' } },
+            ['help'] = { opts = { provider = 'snacks' } },
+            ['symbols'] = { opts = { provider = 'snacks' } },
+            ['workspace'] = { opts = { provider = 'snacks' } },
+            ['image'] = { opts = { provider = 'snacks' } },
+            ['mcp'] = { opts = { provider = 'snacks' } },
           },
         },
       },
-      chat = {
-        adapter = is_windows and 'copilot' or 'opencode',
-        slash_commands = {
-          ['file'] = {
-            opts = { provider = 'snacks' },
-          },
-          ['buffer'] = {
-            opts = { provider = 'snacks' },
-          },
-          ['help'] = {
-            opts = { provider = 'snacks' },
-          },
-          ['symbols'] = {
-            opts = { provider = 'snacks' },
-          },
-          ['workspace'] = {
-            opts = { provider = 'snacks' },
-          },
-          ['image'] = {
-            opts = { provider = 'snacks' }, -- image picker só tem snacks e default
-          },
-          ['mcp'] = {
-            opts = { provider = 'snacks' },
-          },
-          -- adicione outros slash commands personalizados aqui se precisar
+      display = {
+        action_palette = {
+          provider = 'snacks',
         },
       },
-    },
-    display = {
-      action_palette = {
-        provider = 'snacks', -- default | telescope | fzf_lua | mini_pick | snacks
-      },
-    },
-    extensions = {
-      history = {
-        enabled = true,
-        opts = {
-          dir_to_save = vim.fn.stdpath 'data' .. '/codecompanion_chats.json',
-          auto_generate_title = true,
-          title_generation_opts = {
-            adapter = 'copilot', -- ou 'anthropic', 'openai', etc. — qualquer HTTP adapter que você tenha configurado/API key
-            -- model = 'gpt-4.1-mini', -- opcional: forçar um modelo mais barato só pra título
+      extensions = {
+        history = {
+          enabled = true,
+          opts = {
+            dir_to_save = vim.fn.stdpath 'data' .. '/codecompanion_chats.json',
+            auto_generate_title = true,
+            title_generation_opts = {
+              adapter = 'copilot',
+            },
+          },
+        },
+        agentskills = {
+          opts = {
+            paths = {
+              { '~/.config/nvim/skills', recursive = true },
+            },
           },
         },
       },
-      agentskills = {
-        opts = {
-          paths = {
-            { '~/.config/nvim/skills', recursive = true },
-          },
-        },
-      },
-    },
-  }
-end)
+    }
+  end
+)
 
 local map = vim.keymap.set
 
--- Action Palette (lista de ações/prompts disponíveis)
 map({ 'n', 'v' }, '<leader>aa', '<cmd>CodeCompanionActions<cr>', { noremap = true, silent = true, desc = 'CodeCompanion: Action Palette' })
-
--- Toggle do chat
 map({ 'n', 'v' }, '<leader>ac', '<cmd>CodeCompanionChat Toggle<cr>', { noremap = true, silent = true, desc = 'CodeCompanion: Toggle Chat' })
-
--- Adicionar seleção visual ao chat atual
 map('v', '<leader>as', '<cmd>CodeCompanionChat Add<cr>', { noremap = true, silent = true, desc = 'CodeCompanion: Add Selection to Chat' })
-
--- Abrir quickfix com arquivos alterados pelo LLM
 map('n', '<leader>af', '<cmd>CodeCompanionChat Changes<cr>', { noremap = true, silent = true, desc = 'CodeCompanion: Changed Files' })
-
--- Inline assistant (edição direta no buffer, pede prompt)
 map({ 'n', 'v' }, '<leader>ai', ':CodeCompanion ', { noremap = true, silent = false, desc = 'CodeCompanion: Inline Prompt' })
-
--- CLI interativo
 map('n', '<leader>al', '<cmd>CodeCompanionCLI<cr>', { noremap = true, silent = true, desc = 'CodeCompanion: Open CLI' })
-
--- Enviar buffer/seleção atual pro CLI como contexto rápido
 map(
   { 'n', 'v' },
   '<leader>ax',
@@ -105,5 +72,4 @@ map(
   { noremap = true, silent = true, desc = 'CodeCompanion: Add Context to CLI' }
 )
 
--- Expande "cc" em "CodeCompanion" na linha de comando (opcional, mas útil)
 vim.cmd [[cab cc CodeCompanion]]
