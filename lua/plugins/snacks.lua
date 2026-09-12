@@ -1,13 +1,5 @@
--- snacks.nvim — fuzzy finder, toggles, LSP pickers
---
--- snacks.picker is the fuzzy finder replacing Telescope,
--- with no external dependencies.
--- Two important keymaps in a picker:
---  - Insert mode: <c-/>
---  - Normal mode: ?
-
 vim.pack.add { Gh 'folke/snacks.nvim' }
-vim.g.snacks_animate = true
+vim.g.snacks_animate = false
 -- See `:help snacks.nvim` and `:help snacks-picker`
 require('snacks').setup {
   -- snacks.picker overrides vim.ui.select automatically
@@ -24,7 +16,10 @@ require('snacks').setup {
         { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
         { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
         { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
-        { icon = ' ', key = 's', desc = 'Restore Session', section = 'session' },
+        -- FIX: was `section = 'session'`, which autodetects persistence.nvim.
+        -- persistence is gone, so call the mini.sessions loader exported by
+        -- plugins/mini.lua instead.
+        { icon = ' ', key = 's', desc = 'Restore Session', action = function() LoadCwdSession() end },
         { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
       },
       header = [[
@@ -45,7 +40,7 @@ require('snacks').setup {
         indent = 1,
         padding = 1,
       },
-      { section = 'recent_files', icon = ' ', title = 'Recent Files', indent = 3, padding = 2 },
+      { section = 'recent_files', icon = ' ', title = 'Recent Files', indent = 3, padding = 2 },
       {
         text = (function()
           if not vim.g.start_time then return { { 'Startup: n/a', hl = 'SnacksDashboardFooter' } } end
@@ -60,7 +55,6 @@ require('snacks').setup {
     },
   },
   explorer = { enabled = false },
-  -- indent = { enabled = true, scope = { char = '╎' } },
   indent = {
     indent = {
       enabled = false, -- enable indent guides
@@ -69,8 +63,8 @@ require('snacks').setup {
       enabled = true, -- enable highlighting the current scope
       priority = 200,
       char = '╎',
-      underline = false, -- underline the start of the scope
-      only_current = true, -- only show scope in the current window
+      underline = false,
+      only_current = true,
       hl = 'SnacksIndentScope', ---@type string|string[] hl group for scopes
     },
   },
@@ -78,12 +72,16 @@ require('snacks').setup {
   notifier = {
     enabled = true,
     timeout = 3000,
+    -- Renders LSP `$/progress` too — this is why fidget.nvim was cut.
   },
   quickfile = { enabled = true },
   scope = { enabled = true },
   scroll = { enabled = false },
-  statuscolumn = { enabled = false },
-  words = { enabled = false },
+  statuscolumn = { enabled = false }, -- owned by mini.statuscolumn
+  -- FIX: this was `false` while lsp.lua mapped ]] / [[ / <a-n> / <a-p> to
+  -- Snacks.words.jump — four dead keymaps. Enabling it also let us delete the
+  -- hand-rolled documentHighlight autocmds from lsp.lua.
+  words = { enabled = true },
 }
 
 -- ============================================================
@@ -106,13 +104,19 @@ vim.keymap.set('n', '<leader>sm', function() Snacks.picker.marks() end, { desc =
 vim.keymap.set('n', '<leader>sl', function() Snacks.picker.loclist() end, { desc = '[S]earch [L]ocation List' })
 vim.keymap.set('n', '<leader>sq', function() Snacks.picker.qflist() end, { desc = '[S]earch [Q]uickfix List' })
 vim.keymap.set('n', '<leader>s"', function() Snacks.picker.registers() end, { desc = '[S]earch [R]egisters' })
+-- NOTE: these two need todo-comments.nvim installed — the snacks source reads
+-- its keyword patterns. That is why todo-comments stays in the config.
 vim.keymap.set('n', '<leader>st', function() Snacks.picker.todo_comments() end, { desc = '[S]earch [T]odo Comments' })
 vim.keymap.set('n', '<leader>sT', function() Snacks.picker.todo_comments { keywords = { 'TODO', 'FIX', 'FIXME', 'NOTE' } } end, { desc = 'Todo/Fix/Fixme' })
 vim.keymap.set('n', '<leader>sn', function() Snacks.picker.notifications() end, { desc = 'Search Notification History' })
+
+-- Git (mini.diff owns the signs; these are the history/blame pickers that
+-- replaced gitsigns' blame and neogit/diffview)
 vim.keymap.set('n', '<leader>gL', function() Snacks.picker.git_log() end, { desc = 'Git Log (cwd)' })
 vim.keymap.set('n', '<leader>gb', function() Snacks.picker.git_log_line() end, { desc = 'Git Blame Line' })
 vim.keymap.set('n', '<leader>gf', function() Snacks.picker.git_log_file() end, { desc = 'Git Current File History' })
-vim.keymap.set('n', '<leader>gd', function() Snacks.picker.git_diff() end, { desc = 'Git Current File History' })
+vim.keymap.set('n', '<leader>gd', function() Snacks.picker.git_diff() end, { desc = 'Git Diff (hunks)' })
+vim.keymap.set('n', '<leader>gg', function() Snacks.lazygit() end, { desc = 'Lazygit' })
 
 -- Fuzzily search lines in the current buffer
 vim.keymap.set('n', '<leader>/', function() Snacks.picker.lines() end, { desc = '[/] Fuzzily search in current buffer' })
@@ -199,49 +203,13 @@ Snacks.toggle.option('conceallevel', { off = 0, on = vim.o.conceallevel > 0 and 
 Snacks.toggle.treesitter():map '<leader>uT'
 Snacks.toggle.dim():map '<leader>uD'
 Snacks.toggle.indent():map '<leader>ug'
-Snacks.toggle.scroll():map '<leader>uS'
+Snacks.toggle.words():map '<leader>uk'
 Snacks.toggle.profiler():map '<leader>dpp'
 Snacks.toggle.profiler_highlights():map '<leader>dph'
 Snacks.toggle.zoom():map('<leader>wz'):map '<leader>uZ'
 Snacks.toggle.zen():map '<leader>uz'
--- Snacks.toggle.animate():map '<leader>ua'
 
--- ============================================================
--- LSP picker keymaps (buffer-local, on LspAttach)
--- ============================================================
-vim.api.nvim_create_autocmd('LspAttach', {
-  group = vim.api.nvim_create_augroup('snacks-lsp-attach', { clear = true }),
-  callback = function(event)
-    local buf = event.buf
-
-    vim.keymap.set('n', '<leader>cl', function() Snacks.picker.lsp_config() end, { buffer = buf, desc = 'Lsp Info' })
-    vim.keymap.set('n', 'gr', function() Snacks.picker.lsp_references() end, { buffer = buf, desc = '[G]oto [R]eferences' })
-    vim.keymap.set('n', 'gI', function() Snacks.picker.lsp_implementations() end, { buffer = buf, desc = '[G]oto [I]mplementation' })
-    vim.keymap.set('n', 'gd', function() Snacks.picker.lsp_definitions() end, { buffer = buf, desc = '[G]oto [D]efinition' })
-    -- vim.keymap.set('n', 'gO', function() Snacks.picker.lsp_symbols() end, { buffer = buf, desc = 'Open Document Symbols' })
-    -- vim.keymap.set('n', 'gW', function() Snacks.picker.lsp_workspace_symbols() end, { buffer = buf, desc = 'Open Workspace Symbols' })
-    vim.keymap.set('n', 'gy', function() Snacks.picker.lsp_type_definitions() end, { buffer = buf, desc = '[G]oto T[y]pe Definition' })
-    vim.keymap.set('n', 'gai', function() Snacks.picker.lsp_incoming_calls() end, { buffer = buf, desc = 'C[a]lls Incoming' })
-    vim.keymap.set('n', 'gao', function() Snacks.picker.lsp_outgoing_calls() end, { buffer = buf, desc = 'C[a]lls Outgoing' })
-    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { desc = 'Goto Declaration' })
-    vim.keymap.set('n', 'K', function() vim.lsp.buf.hover() end, { desc = 'Hover' })
-    vim.keymap.set('n', 'gK', function() vim.lsp.buf.signature_help() end, { desc = 'Signature Help' })
-    vim.keymap.set('i', '<C-k>', function() vim.lsp.buf.signature_help() end, { desc = 'Signature Help' })
-    vim.keymap.set({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, { desc = 'Code Action' })
-    vim.keymap.set({ 'n', 'x' }, '<leader>cc', vim.lsp.codelens.run, { desc = 'Run Codelens' })
-    -- vim.keymap.set('n', '<leader>cC', vim.lsp.codelens.refresh, { desc = 'Refresh & Display Codelens' })
-    vim.keymap.set('n', '<leader>cr', vim.lsp.buf.rename, { desc = 'Rename' })
-    vim.keymap.set('n', '<leader>cR', function() Snacks.rename.rename_file() end, { desc = 'Rename File' })
-    vim.keymap.set('n', '<leader>cA', function() vim.lsp.buf.code_action { context = { only = { 'source' } } } end, { desc = 'Source Action' })
-    vim.keymap.set(
-      'n',
-      '<leader>co',
-      function() vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' } } } end,
-      { desc = 'Organize Imports', buffer = buf }
-    )
-    vim.keymap.set('n', ']]', function() Snacks.words.jump(vim.v.count1) end, { desc = 'Next Reference' })
-    vim.keymap.set('n', '[[', function() Snacks.words.jump(-vim.v.count1) end, { desc = 'Prev Reference' })
-    vim.keymap.set('n', '<a-n>', function() Snacks.words.jump(vim.v.count1, true) end, { desc = 'Next Reference' })
-    vim.keymap.set('n', '<a-p>', function() Snacks.words.jump(-vim.v.count1, true) end, { desc = 'Prev Reference' })
-  end,
-})
+-- NOTE: `Snacks.toggle.scroll():map '<leader>uS'` was removed along with
+-- mini.animate — `scroll = { enabled = false }` above means there is nothing
+-- to toggle. Flip it to `true` and add the mapping back if you want animated
+-- scrolling.

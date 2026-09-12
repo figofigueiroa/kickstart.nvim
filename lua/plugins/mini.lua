@@ -1,25 +1,29 @@
 -- [[ mini.nvim ]]
 --  Individual mini modules loaded separately instead of the full library.
 --
---  This approach allows for more granular control and better performance by only loading the modules you need.
---
 --  For a list of all available mini modules, see: https://github.com/echasnovski/mini.nvim#modules
+--
+--  Modules in use: icons, statuscolumn, statusline, jump, diff, sessions, ai,
+--  surround, pairs.
+--
+--  mini.diff is now the ONLY owner of git signs / hunk actions
+--  (gitsigns.nvim was cut — it computed the same diff twice, and
+--  MiniStatusline.section_diff was already reading minidiff_summary anyway).
+--
+--  mini.sessions is now the ONLY owner of sessions (persistence.nvim was cut —
+--  mini.nvim is already on disk, so this cost zero extra download).
 
 -- If a nerd font is available, load the icons module for pretty icons in various plugins.
 if vim.g.have_nerd_font then
   require('mini.icons').setup()
-  -- Used for backwards compatibility with plugins that require `nvim-web-devicons` (e.g. telescope.nvim)
+  -- Backwards compatibility with plugins that require `nvim-web-devicons`
   MiniIcons.mock_nvim_web_devicons()
 end
 
--- [[ Better Around/Inside textobjects]]
---
--- Examples:
---  - va)  - [V]isually select [A]round [)]paren
---  - yiiq - [Y]ank [I]nside [I]+1 [Q]uote
---  - ci'  - [C]hange [I]nside [']quote
-
 On_event('VimEnter', function()
+  -- ==========================================================
+  -- Statuscolumn + statusline
+  -- ==========================================================
   require('mini.statuscolumn').setup()
 
   local statusline = require 'mini.statusline'
@@ -28,10 +32,12 @@ On_event('VimEnter', function()
   ---@diagnostic disable-next-line: duplicate-set-field
   statusline.section_location = function() return '%2l:%-2v' end
 
-  -- indicador de "CodeCompanion processando"
-  statusline.section_codecompanion = function()
-    if not vim.g.codecompanion_processing then return '' end
-    return (vim.g.have_nerd_font and ' ' or '[AI] ') .. 'CodeCompanion'
+  -- Generic "AI assistant is working" indicator.
+  -- Set `vim.g.ai_processing` from whichever assistant you keep; the
+  -- codecompanion-specific global is still read for compatibility.
+  statusline.section_ai = function()
+    if not (vim.g.ai_processing or vim.g.codecompanion_processing) then return '' end
+    return (vim.g.have_nerd_font and '󱙺 ' or '[AI] ') .. 'thinking'
   end
 
   ---@diagnostic disable-next-line: duplicate-set-field
@@ -45,7 +51,7 @@ On_event('VimEnter', function()
     local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
     local location = MiniStatusline.section_location { trunc_width = 75 }
     local search = MiniStatusline.section_searchcount { trunc_width = 75 }
-    local cc = MiniStatusline.section_codecompanion { trunc_width = 75 }
+    local ai = MiniStatusline.section_ai { trunc_width = 75 }
 
     return MiniStatusline.combine_groups {
       { hl = mode_hl, strings = { mode } },
@@ -53,75 +59,65 @@ On_event('VimEnter', function()
       '%<',
       { hl = 'MiniStatuslineFilename', strings = { filename } },
       '%=',
-      { hl = 'DiagnosticWarn', strings = { cc } },
+      { hl = 'DiagnosticWarn', strings = { ai } },
       { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
       { hl = mode_hl, strings = { search, location } },
     }
   end
 
-  -- resto do bloco (mini.animate, mini.diff, etc.) continua igual
-
-  -- -- [[ mini.animate ]]
-  -- -- Neovim animations for scroll, resize, cursor, etc.
-  -- instala o plugin (ajuste conforme seu gerenciamento de vim.pack)
-
-  -- só carrega/configura se não estiver no neovide
-  if vim.g.neovide == nil then
-    -- don't use animate when scrolling with the mouse
-    local mouse_scrolled = false
-    for _, scroll in ipairs { 'Up', 'Down' } do
-      local key = '<ScrollWheel' .. scroll .. '>'
-      vim.keymap.set({ '', 'i' }, key, function()
-        mouse_scrolled = true
-        return key
-      end, { expr = true })
-    end
-
-    -- vim.api.nvim_create_autocmd("FileType", {
-    --   pattern = "grug-far",
-    --   callback = function()
-    --     vim.b.minianimate_disable = true
-    --   end,
-    -- })
-
-    local animate = require 'mini.animate'
-    animate.setup {
-      resize = {
-        timing = animate.gen_timing.linear { duration = 50, unit = 'total' },
-      },
-      scroll = {
-        timing = animate.gen_timing.linear { duration = 150, unit = 'total' },
-        subscroll = animate.gen_subscroll.equal {
-          predicate = function(total_scroll)
-            if mouse_scrolled then
-              mouse_scrolled = false
-              return false
-            end
-            return total_scroll > 1
-          end,
-        },
-      },
-    }
-
-    -- mapeamento de toggle, sem depender de VeryLazy/keymaps.lua do LazyVim
-    Snacks.toggle({
-      name = 'Mini Animate',
-      get = function() return not vim.g.minianimate_disable end,
-      set = function(state) vim.g.minianimate_disable = not state end,
-    }):map '<leader>ua'
-  end
-
+  -- ==========================================================
+  -- Motions
+  -- ==========================================================
   require('mini.jump').setup {}
 
-  -- [[ mini.diff ]]
-  -- Git diff visualization
+  -- [[ Better Around/Inside textobjects ]]
+  --
+  -- Examples:
+  --  - va)  - [V]isually select [A]round [)]paren
+  --  - yiiq - [Y]ank [I]nside [I]+1 [Q]uote
+  --
+  -- FIX: mini.ai and mini.surround used to load on `InsertEnter`, but they are
+  -- normal-mode operators. Opening a file and immediately typing `va)` or
+  -- `gsaiw)` did nothing until you had entered insert mode at least once.
+  require('mini.ai').setup {
+    -- NOTE: Avoid conflicts with the built-in incremental selection mappings
+    -- on Neovim >= 0.12 (see `:help treesitter-incremental-selection`)
+    mappings = {
+      around_next = 'aa',
+      inside_next = 'ii',
+    },
+    n_lines = 500,
+  }
+
+  -- [[ Add/delete/replace surroundings (brackets, quotes, etc.) ]]
+  --
+  -- - gsaiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
+  -- - gsd'   - [S]urround [D]elete [']quotes
+  -- - gsr)'  - [S]urround [R]eplace [)] [']
+  require('mini.surround').setup {
+    mappings = {
+      add = 'gsa',
+      delete = 'gsd',
+      find = 'gsf',
+      find_left = 'gsF',
+      highlight = 'gsh',
+      replace = 'gsr',
+
+      suffix_last = 'l',
+      suffix_next = 'n',
+    },
+  }
+
+  -- ==========================================================
+  -- [[ mini.diff ]] — git signs, hunk textobjects, diff overlay
+  -- ==========================================================
   require('mini.diff').setup {
     view = {
       style = 'sign',
       signs = {
         add = ' ▎',
         change = ' ▎',
-        delete = ' ',
+        delete = ' ',
       },
     },
   }
@@ -138,41 +134,80 @@ On_event('VimEnter', function()
       else
         require('mini.diff').disable(0)
       end
-      -- redraw to update the signs
       vim.defer_fn(function() vim.cmd [[redraw!]] end, 200)
     end,
   }):map '<leader>uG'
-end)
 
--- [[ Add/delete/replace surroundings (brackets, quotes, etc.)]]
---
--- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
--- - sd'   - [S]urround [D]elete [']quotes
--- - sr)'  - [S]urround [R]eplace [)] [']
-On_event('InsertEnter', function()
-  require('mini.ai').setup {
-    -- NOTE: Avoid conflicts with the built-in incremental selection mappings on Neovim>=0.12 (see `:help treesitter-incremental-selection`)
-    mappings = {
-      around_next = 'aa',
-      inside_next = 'ii',
-    },
-    n_lines = 500,
-  }
-  require('mini.surround').setup {
-    mappings = {
-      add = 'gsa', -- Add surrounding in Normal and Visual modes
-      delete = 'gsd', -- Delete surrounding
-      find = 'gsf', -- Find surrounding (to the right)
-      find_left = 'gsF', -- Find surrounding (to the left)
-      highlight = 'gsh', -- Highlight surrounding
-      replace = 'gsr', -- Replace surrounding
-
-      suffix_last = 'l', -- Suffix to search with "prev" method
-      suffix_next = 'n', -- Suffix to search with "next" method
-    },
+  -- ==========================================================
+  -- [[ mini.sessions ]] — replaces persistence.nvim
+  -- ==========================================================
+  local sessions = require 'mini.sessions'
+  sessions.setup {
+    autoread = false,
+    -- We write the session ourselves on exit (see the autocmd below) so that
+    -- the very first exit in a new directory also creates a session, matching
+    -- persistence.nvim's behaviour.
+    autowrite = false,
+    -- Empty string disables the "local Session.vim in cwd" detection; we only
+    -- use global sessions keyed by cwd.
+    file = '',
   }
 
-  -- [[ mini.pairs ]]
-  -- Auto pairs for brackets, quotes, etc.
-  require('mini.pairs').setup()
+  -- Encode the cwd into a single filename, e.g. /home/figo/dev/api -> %home%figo%dev%api.vim
+  local function cwd_session()
+    return (vim.fn.getcwd():gsub('[\\/:]+', '%%')) .. '.vim'
+  end
+
+  local function load_session()
+    local name = cwd_session()
+    if sessions.detected[name] then
+      sessions.read(name)
+    else
+      vim.notify('No session for ' .. vim.fn.getcwd(), vim.log.levels.INFO)
+    end
+  end
+
+  vim.keymap.set('n', '<leader>qs', load_session, { desc = 'Load Session for current directory' })
+  vim.keymap.set('n', '<leader>qS', function() sessions.select() end, { desc = 'Select Session to load' })
+  vim.keymap.set('n', '<leader>qw', function() sessions.write(cwd_session(), { force = true }) end, { desc = 'Write Session for current directory' })
+  vim.keymap.set('n', '<leader>ql', function()
+    local latest = sessions.get_latest()
+    if latest then sessions.read(latest) end
+  end, { desc = 'Load last Session' })
+  vim.keymap.set('n', '<leader>qd', function()
+    vim.g.minisessions_disable = true
+    vim.notify('Session saving disabled for this run', vim.log.levels.INFO)
+  end, { desc = "Don't save Session on exit" })
+
+  -- Expose the loader so snacks.lua's dashboard can call it.
+  _G.LoadCwdSession = load_session
+
+  vim.api.nvim_create_autocmd('VimLeavePre', {
+    group = vim.api.nvim_create_augroup('user-session-write', { clear = true }),
+    callback = function()
+      if vim.g.minisessions_disable then return end
+      -- Don't litter session files for `nvim` with nothing open.
+      local has_real_buf = false
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.bo[buf].buflisted and vim.api.nvim_buf_get_name(buf) ~= '' then
+          has_real_buf = true
+          break
+        end
+      end
+      if not has_real_buf then return end
+      pcall(sessions.write, cwd_session(), { force = true, verbose = false })
+    end,
+  })
 end)
+
+-- ==========================================================
+-- [[ mini.pairs ]] — auto pairs. Genuinely insert-mode, so it stays lazy.
+-- ==========================================================
+On_event('InsertEnter', function() require('mini.pairs').setup() end)
+
+-- REMOVED: mini.animate
+--   The only module in the config that provided zero capability — pure
+--   cosmetics, and the most expensive thing in the redraw path. It was also
+--   already disabled under Neovide. If you miss animated scrolling, snacks is
+--   already installed: flip `scroll = { enabled = true }` in snacks.lua and
+--   use the existing `<leader>uS` toggle.

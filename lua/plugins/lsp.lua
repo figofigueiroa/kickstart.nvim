@@ -1,151 +1,142 @@
 -- [[ LSP Configuration ]]
--- Brief aside: **What is LSP?**
 --
--- LSP is an initialism you've probably heard, but might not understand what it is.
+-- This file is the SINGLE owner of every LSP keymap. snacks.lua used to
+-- register a competing `LspAttach` augroup; those maps now live here so there
+-- is exactly one place to look when a keybinding misbehaves.
 --
--- LSP stands for Language Server Protocol. It's a protocol that helps editors
--- and language tooling communicate in a standardized fashion.
---
--- In general, you have a "server" which is some tool built to understand a particular
--- language (such as `gopls`, `lua_ls`, `rust_analyzer`, etc.). These Language Servers
--- (sometimes called LSP servers, but that's kind of like ATM Machine) are standalone
--- processes that communicate with some "client" - in this case, Neovim!
---
--- LSP provides Neovim with features like:
---  - Go to definition
---  - Find references
---  - Autocompletion
---  - Symbol Search
---  - and more!
---
--- Thus, Language Servers are external tools that must be installed separately from
--- Neovim. This is where `mason` and related plugins come into play.
---
--- If you're wondering about lsp vs treesitter, you can check out the wonderfully
--- and elegantly composed help section, `:help lsp-vs-treesitter`
+-- Neovim >= 0.11 already ships these defaults, so they are deliberately NOT
+-- redefined below (see `:help lsp-defaults`):
+--   grn  rename            gra  code action        grr  references
+--   gri  implementation    grt  type definition    gO   document symbols
+--   <C-s> (insert) signature help
+-- The maps below either override a default with a Snacks picker (nicer UI) or
+-- add something Neovim has no default for.
 
 --  This function gets run when an LSP attaches to a particular buffer.
---    That is to say, every time a new file is opened that is associated with
---    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
---    function will be executed to configure the current buffer
 vim.api.nvim_create_autocmd('LspAttach', {
-  group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
+  group = vim.api.nvim_create_augroup('user-lsp-attach', { clear = true }),
   callback = function(event)
-    -- NOTE: Remember that Lua is a real programming language, and as such it is possible
-    -- to define small helper and utility functions so you don't have to repeat yourself.
-    --
-    -- In this case, we create a function that lets us more easily define mappings specific
-    -- for LSP related items. It sets the mode, buffer and description for us each time.
+    -- FIX: this used to be declared ~50 lines lower in the callback. Because
+    -- `local` scope in Lua only starts at the declaration, the `vtsls` branch
+    -- above it was reading the *global* `client` (always nil) and every
+    -- TypeScript keymap silently never got registered.
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if not client then return end
+
     local map = function(keys, func, desc, mode)
       mode = mode or 'n'
       vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
     end
 
-    -- Rename the variable under your cursor.
-    --  Most Language Servers support renaming across files, etc.
-    map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
+    -- ========================================================
+    -- Navigation (Snacks pickers instead of the native handlers)
+    -- ========================================================
+    map('gd', function() Snacks.picker.lsp_definitions() end, '[G]oto [D]efinition')
+    map('gr', function() Snacks.picker.lsp_references() end, '[G]oto [R]eferences')
+    map('gI', function() Snacks.picker.lsp_implementations() end, '[G]oto [I]mplementation')
+    map('gy', function() Snacks.picker.lsp_type_definitions() end, 'Goto T[y]pe Definition')
+    map('gai', function() Snacks.picker.lsp_incoming_calls() end, 'C[a]lls [I]ncoming')
+    map('gao', function() Snacks.picker.lsp_outgoing_calls() end, 'C[a]lls [O]utgoing')
 
-    -- Execute a code action, usually your cursor needs to be on top of an error
-    -- or a suggestion from your LSP for this to activate.
-    map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
+    -- WARN: Goto *Declaration*, not Definition. In C this takes you to the header.
+    map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
-    -- WARN: This is not Goto Definition, this is Goto Declaration.
-    --  For example, in C this would take you to the header.
-    map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+    map('K', function() vim.lsp.buf.hover() end, 'Hover')
+    map('gK', function() vim.lsp.buf.signature_help() end, 'Signature Help')
+    map('<C-k>', function() vim.lsp.buf.signature_help() end, 'Signature Help', 'i')
 
-    map('grd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+    -- Jump between references of the word under the cursor.
+    -- Powered by Snacks.words, which also draws the highlights. This replaces
+    -- the hand-rolled CursorHold/CursorMoved documentHighlight autocmds that
+    -- used to live in this file (~30 lines gone).
+    -- Requires `words = { enabled = true }` in snacks.lua.
+    map(']]', function() Snacks.words.jump(vim.v.count1) end, 'Next Reference')
+    map('[[', function() Snacks.words.jump(-vim.v.count1) end, 'Prev Reference')
+    map('<a-n>', function() Snacks.words.jump(vim.v.count1, true) end, 'Next Reference (cycle)')
+    map('<a-p>', function() Snacks.words.jump(-vim.v.count1, true) end, 'Prev Reference (cycle)')
 
-    -- TypeScript-specific keymaps (LazyVim-style)
-    if client and client.name == 'vtsls' then
-      map('<leader>co', function()
-        vim.lsp.buf.code_action {
-          context = { only = { 'source.organizeImports' } },
-          apply = true,
-        }
-      end, '[O]rganize Imports')
-      map('<leader>cm', function()
-        vim.lsp.buf.code_action {
-          context = { only = { 'source.addMissingImports.ts' } },
-          apply = true,
-        }
-      end, 'Add [M]issing Imports')
-      map('<leader>cu', function()
-        vim.lsp.buf.code_action {
-          context = { only = { 'source.removeUnused.ts' } },
-          apply = true,
-        }
-      end, 'Remove [U]nused Imports')
-      map('<leader>cd', function()
-        vim.lsp.buf.code_action {
-          context = { only = { 'source.fixAll.ts' } },
-          apply = true,
-        }
-      end, '[F]ix All Diagnostics')
-      map('<leader>cV', function()
-        vim.lsp.buf.execute_command { command = 'typescript.selectTypeScriptVersion' }
-      end, 'Select TS Workspace Version')
+    -- ========================================================
+    -- Code actions / refactors
+    -- ========================================================
+    map('<leader>ca', vim.lsp.buf.code_action, 'Code [A]ction', { 'n', 'x' })
+    map('<leader>cA', function() vim.lsp.buf.code_action { context = { only = { 'source' } } } end, 'Source [A]ction')
+    map('<leader>cc', vim.lsp.codelens.run, 'Run [C]odelens', { 'n', 'x' })
+    map('<leader>cr', vim.lsp.buf.rename, '[R]ename')
+    map('<leader>cR', function() Snacks.rename.rename_file() end, '[R]ename File')
+    map('<leader>cl', function() Snacks.picker.lsp_config() end, '[L]sp Info')
+    map(
+      '<leader>co',
+      function() vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' } }, apply = true } end,
+      '[O]rganize Imports'
+    )
+
+    -- ========================================================
+    -- TypeScript / vtsls (adapted from the LazyVim typescript extra)
+    -- ========================================================
+    -- Registered after the generic maps above so it overrides <leader>co / gD
+    -- on TS buffers only.
+    if client.name == 'vtsls' then
+      -- Small helper: apply a specific code action kind without a picker.
+      local function only(kind)
+        return function() vim.lsp.buf.code_action { context = { only = { kind } }, apply = true } end
+      end
+
+      map('<leader>co', only 'source.organizeImports', '[O]rganize Imports')
+      map('<leader>cm', only 'source.addMissingImports.ts', 'Add [M]issing Imports')
+      map('<leader>cu', only 'source.removeUnused.ts', 'Remove [U]nused Imports')
+      map('<leader>cd', only 'source.fixAll.ts', 'Fix All [D]iagnostics')
+
+      -- FIX: `vim.lsp.buf.execute_command` is deprecated on 0.11+.
+      -- The replacement is the client method `client:exec_cmd(cmd, ctx)`.
+      map(
+        '<leader>cV',
+        function() client:exec_cmd({ command = 'typescript.selectTypeScriptVersion' }, { bufnr = event.buf }) end,
+        'Select TS Workspace [V]ersion'
+      )
+
       map('gD', function()
-        local params = vim.lsp.util.make_position_params()
-        vim.lsp.buf.execute_command {
+        -- FIX: make_position_params() now requires an explicit position
+        -- encoding; calling it bare throws on 0.11+.
+        local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
+        client:exec_cmd({
           command = 'typescript.goToSourceDefinition',
           arguments = { params.textDocument.uri, params.position },
-        }
+        }, { bufnr = event.buf })
       end, 'Goto Source [D]efinition')
+
       map('gR', function()
-        vim.lsp.buf.execute_command {
+        client:exec_cmd({
           command = 'typescript.findAllFileReferences',
           arguments = { vim.uri_from_bufnr(0) },
-        }
+        }, { bufnr = event.buf })
       end, 'File [R]eferences')
     end
 
-    -- The following two autocommands are used to highlight references of the
-    -- word under your cursor when your cursor rests there for a little while.
-    --    See `:help CursorHold` for information about when this is executed
-    --
-    -- When you move your cursor, the highlights will be cleared (the second autocommand).
-    local client = vim.lsp.get_client_by_id(event.data.client_id)
-    if client and client:supports_method('textDocument/documentHighlight', event.buf) then
-      local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
-      vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-        buffer = event.buf,
-        group = highlight_augroup,
-        callback = vim.lsp.buf.document_highlight,
-      })
-
-      vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-        buffer = event.buf,
-        group = highlight_augroup,
-        callback = vim.lsp.buf.clear_references,
-      })
-
-      vim.api.nvim_create_autocmd('LspDetach', {
-        group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
-        callback = function(event2)
-          vim.lsp.buf.clear_references()
-          vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
-        end,
-      })
-    end
-
-    -- The following code creates a keymap to toggle inlay hints in your
-    -- code, if the language server you are using supports them
-    --
-    -- This may be unwanted, since they displace some of your code
-    if client and client:supports_method('textDocument/inlayHint', event.buf) then
-      map('<leader>uh', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end, '[U]i Toggle Inlay [H]ints')
+    -- ========================================================
+    -- Inlay hints
+    -- ========================================================
+    if client:supports_method('textDocument/inlayHint', event.buf) then
+      map('<leader>uh', function()
+        -- FIX: the old version read per-buffer state but wrote global state,
+        -- so toggling in one buffer flipped hints everywhere. Pass the filter
+        -- to enable() as well.
+        local filter = { bufnr = event.buf }
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled(filter), filter)
+      end, '[U]i Toggle Inlay [H]ints')
     end
   end,
 })
 
--- Enable the following language servers
---  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
---  See `:help lsp-config` for information about keys and how to configure
+-- ============================================================
+-- Server configurations
+-- ============================================================
+-- Only the *overrides* go here. The base config (cmd, root_markers,
+-- filetypes) comes from nvim-lspconfig's `lsp/<name>.lua` files, which
+-- `vim.lsp.enable()` picks up off the runtimepath automatically.
 ---@type table<string, vim.lsp.Config>
 local servers = {
-  -- clangd = {},
-  -- gopls = {},
   pyright = {},
+
   ruff = {
     on_init = function(client)
       -- Disable capabilities that pyright already provides (avoids duplicate hover)
@@ -155,15 +146,8 @@ local servers = {
       client.server_capabilities.completionProvider = false
     end,
   },
-  -- rust_analyzer = {},
-  --
-  -- Some languages (like typescript) have entire language plugins that can be useful:
-  --    https://github.com/pmizio/typescript-tools.nvim
-  --
-  -- But for many setups, the LSP (`ts_ls`) will work just fine
-  -- ts_ls = {},
 
-  -- TypeScript / React Native (vtsls config adapted from the LazyVim typescript extra)
+  -- TypeScript / React Native
   vtsls = {
     filetypes = {
       'javascript',
@@ -187,9 +171,7 @@ local servers = {
       },
       typescript = {
         updateImportsOnFileMove = { enabled = 'always' },
-        suggest = {
-          completeFunctionCalls = true,
-        },
+        suggest = { completeFunctionCalls = true },
         inlayHints = {
           enumMemberValues = { enabled = true },
           functionLikeReturnTypes = { enabled = true },
@@ -201,9 +183,7 @@ local servers = {
       },
       javascript = {
         updateImportsOnFileMove = { enabled = 'always' },
-        suggest = {
-          completeFunctionCalls = true,
-        },
+        suggest = { completeFunctionCalls = true },
         inlayHints = {
           enumMemberValues = { enabled = true },
           functionLikeReturnTypes = { enabled = true },
@@ -216,65 +196,93 @@ local servers = {
     },
   },
 
-  stylua = {}, -- Used to format Lua code
-
   marksman = {},
   roslyn_ls = {},
+
   tinymist = {
     single_file_support = true, -- Fixes LSP attachment in non-Git directories
     settings = {
       formatterMode = 'typstyle',
     },
   },
+
   -- lua_ls: workspace.library is intentionally omitted.
-  -- lazydev.nvim (plugins/lazydev.lua) handles library injection
-  -- lazily per-buffer, which avoids the slow full-workspace scan and the
+  -- lazydev.nvim (plugins/lazydev.lua) handles library injection lazily
+  -- per-buffer, which avoids the slow full-workspace scan and the
   -- duplicate-loading bug from nvim_get_runtime_file('', true).
   lua_ls = {
     on_init = function(client)
-      client.server_capabilities.documentFormattingProvider = false -- Disable formatting (formatting is done by stylua)
+      client.server_capabilities.documentFormattingProvider = false -- formatting is done by stylua via conform
     end,
     ---@type lspconfig.settings.lua_ls
     settings = {
       Lua = {
-        format = { enable = false }, -- Disable formatting (formatting is done by stylua)
+        format = { enable = false },
       },
     },
   },
+
+  -- NOTE: `stylua = {}` used to live in this table purely so that
+  -- `vim.tbl_keys(servers)` would feed it to mason. Side effect:
+  -- `vim.lsp.enable('stylua')` tried to start a language server that does not
+  -- exist. Formatters/linters now live in `ensure_installed` below instead.
+}
+
+-- ============================================================
+-- Tooling installation (mason)
+-- ============================================================
+-- These are mason PACKAGE names, not lspconfig server names.
+-- Browse them with `:Mason`, or at https://mason-registry.dev/registry/list
+local ensure_installed = {
+  -- language servers
+  'pyright',
+  'ruff',
+  'vtsls',
+  'lua-language-server',
+  'marksman',
+  'roslyn-language-server',
+  'tinymist',
+  'jdtls',
+  -- formatters / linters
+  'stylua',
+  'markdownlint-cli2',
 }
 
 vim.pack.add {
+  -- Still required: provides the base `lsp/<server>.lua` definitions that
+  -- `vim.lsp.enable()` reads. Do NOT drop this one.
   Gh 'neovim/nvim-lspconfig',
   Gh 'mason-org/mason.nvim',
-  Gh 'mason-org/mason-lspconfig.nvim',
-  Gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
-  Gh 'mfussenegger/nvim-jdtls', -- novo
+  Gh 'mfussenegger/nvim-jdtls', -- consumed by ftplugin/java.lua
+
+  -- REMOVED: 'mason-org/mason-lspconfig.nvim'
+  --   It was a no-op here. `automatic_enable = false` meant it enabled
+  --   nothing, and `vim.lsp.config`/`vim.lsp.enable` below already do the
+  --   wiring. Its only remaining job was translating server names into
+  --   mason package names for mason-tool-installer — replaced by the
+  --   explicit `ensure_installed` list above.
+  --
+  -- REMOVED: 'WhoIsSethDaniel/mason-tool-installer.nvim'
+  --   Replaced by the ~6 line auto-install loop below. If you'd rather keep
+  --   the plugin, add it back and swap the loop for:
+  --     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 }
 
 Later(function()
-  -- Automatically install LSPs and related tools to stdpath for Neovim
   require('mason').setup {}
 
-  -- Translates between nvim-lspconfig server names and mason.nvim package names (e.g. lua_ls <-> lua-language-server)
-  require('mason-lspconfig').setup {
-    automatic_enable = false, -- Change this to true if you want to automatically enable servers that are installed manually (e.g. via :Mason / :MasonInstall)
-  }
-
-  -- Ensure the servers and tools above are installed
-  --
-  -- To check the current status of installed tools and/or manually install
-  -- other tools, you can run
-  --    :Mason
-  --
-  -- You can press `g?` for help in this menu.
-  local ensure_installed = vim.tbl_keys(servers or {})
-  vim.list_extend(ensure_installed, {
-    -- You can add other tools here that you want Mason to install
-    'jdtls',
-    'markdownlint-cli2',
-  })
-
-  require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+  -- Auto-install anything missing, in the background.
+  local registry = require 'mason-registry'
+  registry.refresh(function()
+    for _, name in ipairs(ensure_installed) do
+      local ok, pkg = pcall(registry.get_package, name)
+      if ok and not pkg:is_installed() then
+        pkg:install()
+      elseif not ok then
+        vim.notify('mason: unknown package "' .. name .. '"', vim.log.levels.WARN)
+      end
+    end
+  end)
 
   for name, server in pairs(servers) do
     vim.lsp.config(name, server)
