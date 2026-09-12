@@ -10,9 +10,6 @@ local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
 On_event('VimEnter', function()
   require('codecompanion').setup {
     interactions = {
-      chat = {
-        adapter = is_windows and 'copilot' or 'opencode',
-      },
       cli = {
         agent = is_windows and 'copilot' or 'opencode',
         agents = {
@@ -24,27 +21,59 @@ On_event('VimEnter', function()
           },
         },
       },
-    },
-extensions = {
-  history = {
-    enabled = true,
-    opts = {
-      dir_to_save = vim.fn.stdpath 'data' .. '/codecompanion_chats.json',
-      auto_generate_title = true,
-      title_generation_opts = {
-        adapter = 'copilot', -- ou 'anthropic', 'openai', etc. — qualquer HTTP adapter que você tenha configurado/API key
-        -- model = 'gpt-4.1-mini', -- opcional: forçar um modelo mais barato só pra título
+      chat = {
+        adapter = is_windows and 'copilot' or 'opencode',
+        slash_commands = {
+          ['file'] = {
+            opts = { provider = 'snacks' },
+          },
+          ['buffer'] = {
+            opts = { provider = 'snacks' },
+          },
+          ['help'] = {
+            opts = { provider = 'snacks' },
+          },
+          ['symbols'] = {
+            opts = { provider = 'snacks' },
+          },
+          ['workspace'] = {
+            opts = { provider = 'snacks' },
+          },
+          ['image'] = {
+            opts = { provider = 'snacks' }, -- image picker só tem snacks e default
+          },
+          ['mcp'] = {
+            opts = { provider = 'snacks' },
+          },
+          -- adicione outros slash commands personalizados aqui se precisar
+        },
       },
     },
-  },
-  agentskills = {
-    opts = {
-      paths = {
-        { '~/.config/nvim/skills', recursive = true },
+    display = {
+      action_palette = {
+        provider = 'snacks', -- default | telescope | fzf_lua | mini_pick | snacks
       },
     },
-  },
-},
+    extensions = {
+      history = {
+        enabled = true,
+        opts = {
+          dir_to_save = vim.fn.stdpath 'data' .. '/codecompanion_chats.json',
+          auto_generate_title = true,
+          title_generation_opts = {
+            adapter = 'copilot', -- ou 'anthropic', 'openai', etc. — qualquer HTTP adapter que você tenha configurado/API key
+            -- model = 'gpt-4.1-mini', -- opcional: forçar um modelo mais barato só pra título
+          },
+        },
+      },
+      agentskills = {
+        opts = {
+          paths = {
+            { '~/.config/nvim/skills', recursive = true },
+          },
+        },
+      },
+    },
   }
 end)
 
@@ -78,5 +107,3 @@ map(
 
 -- Expande "cc" em "CodeCompanion" na linha de comando (opcional, mas útil)
 vim.cmd [[cab cc CodeCompanion]]
-
-

@@ -31,12 +31,14 @@ require 'config.autocmd'
 do
   -- mini.misc is required for the `Later`/`On_event` helpers, so it is
   -- installed here rather than in `lua/plugins/mini.lua`.
-  vim.pack.add { Gh 'nvim-mini/mini.misc' }
+  vim.pack.add { Gh 'nvim-mini/mini.nvim' }
   local misc = require 'mini.misc'
+  Now = function(f) misc.safely('now', f) end
   Later = function(f)
     vim.schedule(function() misc.safely('later', f) end)
   end
   On_event = function(ev, f) misc.safely('event:' .. ev, f) end
+  Now_if_args = vim.fn.argc(-1) > 0 and Now or Later
 end
 
 -- ============================================================

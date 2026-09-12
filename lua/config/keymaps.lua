@@ -136,4 +136,28 @@ map("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase Window Height" })
 map("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease Window Height" })
 map("n", "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "Decrease Window Width" })
 map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase Window Width" })
-map({"n", "x"}, "<C-\\>", "<cmd>terminal<cr>", { desc = "Open Terminal" })
+
+
+local root_markers = {
+  ".git", ".hg", ".svn", ".bzr",
+  "package.json", "pnpm-lock.yaml", "yarn.lock",
+  "pyproject.toml", "setup.py", "requirements.txt",
+  "go.mod", "Cargo.toml",
+  "pom.xml", "build.gradle", "settings.gradle",
+  "composer.json", "Gemfile", "mix.exs",
+  "*.sln", "*.csproj",
+  "CMakeLists.txt", "Makefile", "justfile",
+  ".project", "meson.build",
+}
+
+local function project_root()
+  -- vim.fs.root já sobe até achar o primeiro marcador da lista
+  return vim.fs.root(0, root_markers) or vim.loop.cwd()
+end
+
+map({ "n", "t" }, "<c-/>", function()
+  Snacks.terminal.focus(nil, { cwd = project_root() })
+end, { desc = "Terminal (Root Dir)" })
+-- floating terminal
+map("n", "<leader>fT", function() Snacks.terminal() end, { desc = "Terminal (cwd)" })
+map({"n","t"}, "<c-_>",function() Snacks.terminal.focus(nil, { cwd = project_root() }) end, { desc = "which_key_ignore" })

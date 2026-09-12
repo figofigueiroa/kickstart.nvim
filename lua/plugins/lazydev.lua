@@ -18,7 +18,10 @@ vim.api.nvim_create_autocmd('FileType', {
       library = {
         -- Load libuv types only when `vim.uv` is referenced in the buffer
         { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
+        -- Load snacks.nvim types only when `Snacks` is referenced in the buffer
+        { path = 'snacks.nvim', words = { 'Snacks' } },
       },
     }
   end,
 })
+
