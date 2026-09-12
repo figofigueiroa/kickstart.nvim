@@ -1,3 +1,5 @@
+if vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1 then return {} end
+
 vim.pack.add {
   {
     src = 'https://github.com/nickjvandyke/opencode.nvim',
@@ -5,7 +7,6 @@ vim.pack.add {
   },
 }
 
-if vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1 then return {} end
 
 local ocv_cmd = "bash -c 'exec -a opencode ocv --port'"
 
