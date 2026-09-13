@@ -5,6 +5,7 @@ vim.pack.add {
 }
 
 local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
+local map = vim.keymap.set
 
 On_event('VimEnter', function()
   local cwd = vim.fn.getcwd()
@@ -12,9 +13,6 @@ On_event('VimEnter', function()
   if cwd == vault or cwd:sub(1, #vault + 1) == vault .. '/' then
     require('obsidian').setup {
       legacy_commands = false, -- this will be removed in 4.0.0
-      picker = {
-        name = 'snacks.picker', -- use snacks picker
-      },
       workspaces = {
         {
           name = 'notas',
@@ -23,4 +21,6 @@ On_event('VimEnter', function()
       },
     }
   end
+  map('n', '<leader>on', function() require('obsidian').open() end, { desc = 'Open Obsidian' })
+  map('n', '<leader>ch', '<cmd>Obsidian toggle_checkbox<cr>', { buffer = true, desc = 'Toggle checkbox' })
 end)

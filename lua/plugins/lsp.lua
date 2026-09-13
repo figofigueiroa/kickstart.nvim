@@ -255,27 +255,26 @@ local ensure_installed = {
   'csharpier',
 }
 
-vim.pack.add {
-  -- Still required: provides the base `lsp/<server>.lua` definitions that
-  -- `vim.lsp.enable()` reads. Do NOT drop this one.
-  Gh 'neovim/nvim-lspconfig',
-  Gh 'mason-org/mason.nvim',
-  Gh 'mfussenegger/nvim-jdtls', -- consumed by ftplugin/java.lua
+Now_if_args(function()
+  vim.pack.add {
+    -- Still required: provides the base `lsp/<server>.lua` definitions that
+    -- `vim.lsp.enable()` reads. Do NOT drop this one.
+    Gh 'neovim/nvim-lspconfig',
+    Gh 'mason-org/mason.nvim',
+    Gh 'mfussenegger/nvim-jdtls', -- consumed by ftplugin/java.lua
 
-  -- REMOVED: 'mason-org/mason-lspconfig.nvim'
-  --   It was a no-op here. `automatic_enable = false` meant it enabled
-  --   nothing, and `vim.lsp.config`/`vim.lsp.enable` below already do the
-  --   wiring. Its only remaining job was translating server names into
-  --   mason package names for mason-tool-installer — replaced by the
-  --   explicit `ensure_installed` list above.
-  --
-  -- REMOVED: 'WhoIsSethDaniel/mason-tool-installer.nvim'
-  --   Replaced by the ~6 line auto-install loop below. If you'd rather keep
-  --   the plugin, add it back and swap the loop for:
-  --     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-}
-
-Later(function()
+    -- REMOVED: 'mason-org/mason-lspconfig.nvim'
+    --   It was a no-op here. `automatic_enable = false` meant it enabled
+    --   nothing, and `vim.lsp.config`/`vim.lsp.enable` below already do the
+    --   wiring. Its only remaining job was translating server names into
+    --   mason package names for mason-tool-installer — replaced by the
+    --   explicit `ensure_installed` list above.
+    --
+    -- REMOVED: 'WhoIsSethDaniel/mason-tool-installer.nvim'
+    --   Replaced by the ~6 line auto-install loop below. If you'd rather keep
+    --   the plugin, add it back and swap the loop for:
+    --     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+  }
   require('mason').setup {}
 
   -- Auto-install anything missing, in the background.

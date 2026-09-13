@@ -20,7 +20,7 @@ if vim.g.have_nerd_font then
   MiniIcons.mock_nvim_web_devicons()
 end
 
-On_event('VimEnter', function()
+Later(function()
   -- ==========================================================
   -- Statuscolumn + statusline
   -- ==========================================================
@@ -154,9 +154,7 @@ On_event('VimEnter', function()
   }
 
   -- Encode the cwd into a single filename, e.g. /home/figo/dev/api -> %home%figo%dev%api.vim
-  local function cwd_session()
-    return (vim.fn.getcwd():gsub('[\\/:]+', '%%')) .. '.vim'
-  end
+  local function cwd_session() return (vim.fn.getcwd():gsub('[\\/:]+', '%%')) .. '.vim' end
 
   local function load_session()
     local name = cwd_session()
