@@ -1,11 +1,12 @@
 -- [[ obsidian.nvim ]]
--- Vault notes. Setup is gated on the cwd being the vault; the keymaps are
--- registered at VimEnter, matching the old behaviour.
+-- Vault notes. Setup is gated on the cwd being the vault; note keymaps are
+-- registered on `ObsidianNoteEnter` in lua/config/autocmd.lua.
 local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
 
 return {
   'obsidian-nvim/obsidian.nvim',
-  event = 'VimEnter',
+  ft = 'markdown',
+  event = 'BufEnter',
   dependencies = { 'nvim-lua/plenary.nvim' },
   config = function()
     local cwd = vim.fn.getcwd()
@@ -21,8 +22,5 @@ return {
         },
       }
     end
-    local map = vim.keymap.set
-    map('n', '<leader>on', function() require('obsidian').open() end, { desc = 'Open Obsidian' })
-    map('n', '<leader>ch', '<cmd>Obsidian toggle_checkbox<cr>', { buffer = true, desc = 'Toggle checkbox' })
   end,
 }

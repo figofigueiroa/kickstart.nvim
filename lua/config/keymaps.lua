@@ -128,26 +128,73 @@ map('n', '[w', diagnostic_goto(false, 'WARN'), { desc = 'Prev Warning' })
 -- map("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
 -- map("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 -- windows
-map("n", "<leader>-", "<C-W>s", { desc = "Split Window Below", remap = true })
-map("n", "<leader>|", "<C-W>v", { desc = "Split Window Right", remap = true })
-map("n", "<leader>wd", "<C-W>c", { desc = "Delete Window", remap = true })
--- Resize window using <ctrl> arrow keys
-map("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase Window Height" })
-map("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease Window Height" })
-map("n", "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "Decrease Window Width" })
-map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase Window Width" })
+map('n', '<leader>-', '<C-W>s', { desc = 'Split Window Below', remap = true })
+map('n', '<leader>|', '<C-W>v', { desc = 'Split Window Right', remap = true })
+map('n', '<leader>wd', '<C-W>c', { desc = 'Delete Window', remap = true })
 
+local cmds = {
+  h = 'Go left',
+  j = 'Go down',
+  k = 'Go up',
+  l = 'Go right',
+  s = 'Split below',
+  v = 'Split right',
+  q = 'Quit window',
+  o = 'Only window',
+  w = 'Next window',
+  p = 'Last window',
+  x = 'Exchange',
+  r = 'Rotate',
+  H = 'Move far left',
+  J = 'Move far down',
+  K = 'Move far up',
+  L = 'Move far right',
+  T = 'Move to tab',
+  ['='] = 'Equalize',
+  ['+'] = 'Height +',
+  ['-'] = 'Height -',
+  ['<'] = 'Width -',
+  ['>'] = 'Width +',
+  ['_'] = 'Max height',
+  ['|'] = 'Max width',
+}
+
+for key, desc in pairs(cmds) do
+  vim.keymap.set('n', '<leader>w' .. key, '<C-w>' .. key, { desc = desc })
+end
+
+-- Resize window using <ctrl> arrow keys
+map('n', '<C-Up>', '<cmd>resize +2<cr>', { desc = 'Increase Window Height' })
+map('n', '<C-Down>', '<cmd>resize -2<cr>', { desc = 'Decrease Window Height' })
+map('n', '<C-Left>', '<cmd>vertical resize -2<cr>', { desc = 'Decrease Window Width' })
+map('n', '<C-Right>', '<cmd>vertical resize +2<cr>', { desc = 'Increase Window Width' })
 
 local root_markers = {
-  ".git", ".hg", ".svn", ".bzr",
-  "package.json", "pnpm-lock.yaml", "yarn.lock",
-  "pyproject.toml", "setup.py", "requirements.txt",
-  "go.mod", "Cargo.toml",
-  "pom.xml", "build.gradle", "settings.gradle",
-  "composer.json", "Gemfile", "mix.exs",
-  "*.sln", "*.csproj",
-  "CMakeLists.txt", "Makefile", "justfile",
-  ".project", "meson.build",
+  '.git',
+  '.hg',
+  '.svn',
+  '.bzr',
+  'package.json',
+  'pnpm-lock.yaml',
+  'yarn.lock',
+  'pyproject.toml',
+  'setup.py',
+  'requirements.txt',
+  'go.mod',
+  'Cargo.toml',
+  'pom.xml',
+  'build.gradle',
+  'settings.gradle',
+  'composer.json',
+  'Gemfile',
+  'mix.exs',
+  '*.sln',
+  '*.csproj',
+  'CMakeLists.txt',
+  'Makefile',
+  'justfile',
+  '.project',
+  'meson.build',
 }
 
 local function project_root()
@@ -155,9 +202,7 @@ local function project_root()
   return vim.fs.root(0, root_markers) or vim.loop.cwd()
 end
 
-map({ "n", "t" }, "<c-/>", function()
-  Snacks.terminal.focus(nil, { cwd = project_root() })
-end, { desc = "Terminal (Root Dir)" })
+map({ 'n', 't' }, '<c-/>', function() Snacks.terminal.focus(nil, { cwd = project_root() }) end, { desc = 'Terminal (Root Dir)' })
 -- floating terminal
-map("n", "<leader>fT", function() Snacks.terminal() end, { desc = "Terminal (cwd)" })
-map({"n","t"}, "<c-_>",function() Snacks.terminal.focus(nil, { cwd = project_root() }) end, { desc = "which_key_ignore" })
+-- map("n", "<leader>fT", function() Snacks.terminal() end, { desc = "Terminal (cwd)" })
+map({ 'n', 't' }, '<c-_>', function() Snacks.terminal.focus(nil, { cwd = project_root() }) end, { desc = 'which_key_ignore' })
