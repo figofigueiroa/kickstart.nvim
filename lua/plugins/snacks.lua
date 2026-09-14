@@ -105,7 +105,7 @@ return {
     { '<leader>s.', function() Snacks.picker.recent() end, desc = '[S]earch Recent Files ("." for repeat)' },
     { '<leader>sc', function() Snacks.picker.commands() end, desc = '[S]earch [C]ommands' },
     { '<leader>sp', function() Snacks.picker.projects() end, desc = 'Projects' },
-    { '<leader><leader>', function() Snacks.picker.buffers() end, desc = '[ ] Find existing buffers' },
+    { '<leader><leader>', function() Snacks.picker.buffers() end, desc = ' Find existing buffers' },
     { '<leader>sm', function() Snacks.picker.marks() end, desc = '[S]earch [M]arks' },
     { '<leader>sl', function() Snacks.picker.loclist() end, desc = '[S]earch [L]ocation List' },
     { '<leader>sq', function() Snacks.picker.qflist() end, desc = '[S]earch [Q]uickfix List' },

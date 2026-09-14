@@ -4,6 +4,7 @@ return {
   'folke/which-key.nvim',
   event = 'VeryLazy',
   opts = {
+    preset = 'modern',
     -- Delay between pressing a key and opening which-key (milliseconds)
     delay = 0,
     icons = { mappings = vim.g.have_nerd_font },
@@ -25,6 +26,7 @@ return {
       { '<leader>w', group = '[W]indow Control', mode = { 'n', 'v' } },
       { '<leader>gr', group = 'Lsp Actions', mode = { 'n', 'v' } },
       { '<leader>q', group = 'Session Manager', mode = { 'n', 'v' } },
+      { '<leader>o', group = '[O]pencode', mode = { 'n' } },
     },
   },
 }

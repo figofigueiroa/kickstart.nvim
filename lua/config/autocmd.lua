@@ -57,3 +57,52 @@ vim.api.nvim_create_autocmd('FileType', {
   pattern = 'directory',
   callback = function() vim.bo.bufhidden = 'delete' end,
 })
+
+-- [[ Obsidian: keymaps ao entrar em nota ]]
+-- O obsidian.nvim emite `User ObsidianNoteEnter` ao entrar num buffer de nota
+-- (setup ativo, cwd no vault; o `event = 'BufEnter'` do spec cobre também o
+-- buffer inicial). O grupo `<leader>o` é `[O]pencode` no spec global do
+-- which-key; em notas ele é sobrescrito buffer-local para `[O]bsidian`.
+local function wk_obsidian_group()
+  if not package.loaded['which-key'] then return false end
+  -- `buffer` é campo do item do spec (não do opts) e resolve para o buffer
+  -- atual no parse; assim a entrada vale só para notas e sobrescreve o
+  -- `[O]pencode` global.
+  require('which-key').add { { '<leader>o', group = '[O]bsidian', mode = 'n', buffer = true } }
+  return true
+end
+
+vim.api.nvim_create_autocmd('User', {
+  desc = 'Keymaps do Obsidian para o buffer de nota',
+  pattern = 'ObsidianNoteEnter',
+  group = vim.api.nvim_create_augroup('user-obsidian-note', { clear = true }),
+  callback = function()
+    local function map(lhs, rhs, desc) vim.keymap.set('n', lhs, rhs, { buffer = true, desc = desc }) end
+
+    -- map('<leader>oo', '<cmd>Obsidian open<cr>', 'Open in Obsidian app')
+    map('<leader>on', '<cmd>Obsidian new<cr>', 'New note')
+    map('<leader>oq', '<cmd>Obsidian quick_switch<cr>', 'Quick switch')
+    map('<leader>os', '<cmd>Obsidian search<cr>', 'Search in vault')
+    map('<leader>of', '<cmd>Obsidian follow_link<cr>', 'Follow link')
+    map('<leader>ob', '<cmd>Obsidian backlinks<cr>', 'Backlinks')
+    map('<leader>ol', '<cmd>Obsidian links<cr>', 'Links of the note')
+    map('<leader>ot', '<cmd>Obsidian today<cr>', "Today's daily note")
+    map('<leader>oc', '<cmd>Obsidian toggle_checkbox<cr>', 'Toggle checkbox')
+    map('<leader>oT', '<cmd>Obsidian template<cr>', 'Insert template')
+    map('<leader>or', '<cmd>Obsidian rename<cr>', 'Rename note')
+    -- map('<leader>op', '<cmd>Obsidian paste_img<cr>', 'Paste image')
+
+    if not wk_obsidian_group() then
+      -- which-key (VeryLazy) pode carregar depois do primeiro NoteEnter:
+      -- registrar quando chegar, se ainda estivermos numa nota.
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'VeryLazy',
+        once = true,
+        group = vim.api.nvim_create_augroup('user-obsidian-wk', { clear = true }),
+        callback = function()
+          if vim.b.obsidian_buffer then wk_obsidian_group() end
+        end,
+      })
+    end
+  end,
+})
