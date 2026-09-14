@@ -10,6 +10,84 @@
 --  MiniStatusline.section_diff was already reading minidiff_summary anyway).
 --
 --  mini.sessions is the ONLY owner of sessions (persistence.nvim was cut).
+
+local function is_loaded(name)
+  local plugin = require('lazy.core.config').plugins[name]
+  return plugin and plugin._.loaded
+end
+
+local function on_load(name, fn)
+  if is_loaded(name) then
+    fn(name)
+  else
+    vim.api.nvim_create_autocmd('User', {
+      pattern = 'LazyLoad',
+      callback = function(event)
+        if event.data == name then
+          fn(name)
+          return true
+        end
+      end,
+    })
+  end
+end
+
+local function ai_whichkey(opts)
+  local objects = {
+    { ' ', desc = 'whitespace' },
+    { '"', desc = '" string' },
+    { "'", desc = "' string" },
+    { '(', desc = '() block' },
+    { ')', desc = '() block with ws' },
+    { '<', desc = '<> block' },
+    { '>', desc = '<> block with ws' },
+    { '?', desc = 'user prompt' },
+    { 'U', desc = 'use/call without dot' },
+    { '[', desc = '[] block' },
+    { ']', desc = '[] block with ws' },
+    { '_', desc = 'underscore' },
+    { '`', desc = '` string' },
+    { 'a', desc = 'argument' },
+    { 'b', desc = ')]} block' },
+    { 'c', desc = 'class' },
+    { 'd', desc = 'digit(s)' },
+    { 'e', desc = 'CamelCase / snake_case' },
+    { 'f', desc = 'function' },
+    { 'g', desc = 'entire file' },
+    { 'i', desc = 'indent' },
+    { 'o', desc = 'block, conditional, loop' },
+    { 'q', desc = 'quote `"\'' },
+    { 't', desc = 'tag' },
+    { 'u', desc = 'use/call' },
+    { '{', desc = '{} block' },
+    { '}', desc = '{} with ws' },
+  }
+
+  ---@type wk.Spec[]
+  local ret = { mode = { 'o', 'x' } }
+  ---@type table<string, string>
+  local mappings = vim.tbl_extend('force', {}, {
+    around = 'a',
+    inside = 'i',
+    around_next = 'an',
+    inside_next = 'in',
+    around_last = 'al',
+    inside_last = 'il',
+  }, opts.mappings or {})
+  mappings.goto_left = nil
+  mappings.goto_right = nil
+
+  for name, prefix in pairs(mappings) do
+    name = name:gsub('^around_', ''):gsub('^inside_', '')
+    ret[#ret + 1] = { prefix, group = name }
+    for _, obj in ipairs(objects) do
+      local desc = obj.desc
+      if prefix:sub(1, 1) == 'i' then desc = desc:gsub(' with ws', '') end
+      ret[#ret + 1] = { prefix .. obj[1], desc = obj.desc }
+    end
+  end
+  require('which-key').add(ret, { notify = false })
+end
 return {
   -- ==========================================================
   -- [[ mini.icons ]] — eager, so the nvim-web-devicons mock is
@@ -55,6 +133,87 @@ return {
         return (vim.g.have_nerd_font and '󱙺 ' or '[AI] ') .. 'thinking'
       end
 
+      -- ========================================================
+      -- Blocos "flutuantes": cada grupo da linha ganha arcos
+      -- (U+E0B6 / U+E0B4) desenhados com a cor do bloco.
+      -- ========================================================
+      -- Os hl do mini são links para grupos do tema (Cursor, DiffAdd, …),
+      -- então as cores dos arcos são resolvidas em runtime e re-derivadas
+      -- em ColorScheme (após o create_default_hl do próprio mini).
+      local sep_sources = {
+        'MiniStatuslineModeNormal',
+        'MiniStatuslineModeInsert',
+        'MiniStatuslineModeVisual',
+        'MiniStatuslineModeReplace',
+        'MiniStatuslineModeCommand',
+        'MiniStatuslineModeOther',
+        'MiniStatuslineDevinfo',
+        'MiniStatuslineFilename',
+        'MiniStatuslineFileinfo',
+        'DiagnosticWarn',
+      }
+
+      -- `nvim_get_hl` com `link = false` resolve os links do tema e devolve
+      -- as cores como número (`synIDattr` vem devolvendo vazio aqui).
+      local function color_of(name, attr)
+        local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = name, link = false })
+        if not ok or hl[attr] == nil then return '' end
+        return string.format('#%06x', hl[attr])
+      end
+
+      local function define_sep_hl()
+        for _, src in ipairs(sep_sources) do
+          local sep = 'UserMSep' .. src:gsub('^MiniStatusline', '')
+          -- Arco usa o BG do bloco como cor; se o tema não resolver, tenta o
+          -- FG; se ainda assim não houver cor, o arco fica invisível.
+          local fg = color_of(src, 'bg')
+          if fg == '' then fg = color_of(src, 'fg') end
+          if fg == '' then fg = 'NONE' end
+          vim.api.nvim_set_hl(0, sep, { fg = fg, bg = 'none' })
+        end
+      end
+
+      define_sep_hl()
+
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        group = vim.api.nvim_create_augroup('user-statusline-sep', { clear = true }),
+        callback = function() vim.schedule(define_sep_hl) end,
+      })
+
+      local sep_left = '\238\130\182' -- U+E0B6: arco esquerdo do bloco
+      local sep_right = '\238\130\180' -- U+E0B4: arco direito do bloco
+
+      -- Como `MiniStatusline.combine_groups`, mas grupos vazios não
+      -- renderizam (sem arcos órfãos quando a seção truncada some) e cada
+      -- bloco ganha arcos com o hl derivado `UserMSep*`.
+      local function combine(groups)
+        local parts = {}
+        for _, group in ipairs(groups) do
+          if type(group) == 'string' then
+            parts[#parts + 1] = group
+          elseif type(group) == 'table' then
+            local strings = vim.tbl_filter(function(s) return type(s) == 'string' and s ~= '' end, group.strings or {})
+            if #strings > 0 then
+              if group.hl == nil then
+                parts[#parts + 1] = ' ' .. table.concat(strings, ' ') .. ' '
+              else
+                -- section_mode pode devolver o hl já formatado no fallback
+                -- de modo desconhecido ('%#…#'): normalizar para o nome puro.
+                local hl = group.hl:gsub('^%%#', ''):gsub('#$', '')
+                local str = table.concat(strings, ' ')
+                local sep = 'UserMSep' .. hl:gsub('^MiniStatusline', '')
+                if vim.fn.hlexists(sep) == 1 then
+                  parts[#parts + 1] = string.format('%%#%s#%s%%#%s# %s %%#%s#%s', sep, sep_left, hl, str, sep, sep_right)
+                else
+                  parts[#parts + 1] = string.format('%%#%s# %s ', hl, str)
+                end
+              end
+            end
+          end
+        end
+        return table.concat(parts, ' ')
+      end
+
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.config.content.active = function()
         local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
@@ -68,7 +227,7 @@ return {
         local search = MiniStatusline.section_searchcount { trunc_width = 75 }
         local ai = MiniStatusline.section_ai { trunc_width = 75 }
 
-        return MiniStatusline.combine_groups {
+        return combine {
           { hl = mode_hl, strings = { mode } },
           { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
           '%<',
@@ -100,20 +259,65 @@ return {
   -- FIX: mini.ai and mini.surround used to load on `InsertEnter`, but they are
   -- normal-mode operators. Opening a file and immediately typing `va)` or
   -- `gsaiw)` did nothing until you had entered insert mode at least once.
+  -- {
+  --   'nvim-mini/mini.ai',
+  --   event = 'VeryLazy',
+  --   opts = {
+  --     -- NOTE: Avoid conflicts with the built-in incremental selection mappings
+  --     -- on Neovim >= 0.12 (see `:help treesitter-incremental-selection`)
+  --     mappings = {
+  --       -- Main textobject prefixes
+  --       around = 'a',
+  --       inside = 'i',
+  --
+  --       -- Next/last variants
+  --       -- NOTE: This (deliberately) overrides Neovim>=0.12 built-in incremental
+  --       -- selection mappings. See `:h MiniAi-default-an-in` for more details.
+  --       around_next = 'an',
+  --       inside_next = 'in',
+  --       around_last = 'al',
+  --       inside_last = 'il',
+  --
+  --       -- Move cursor to corresponding edge of `a` textobject
+  --       goto_left = 'g[',
+  --       goto_right = 'g]',
+  --     },
+  --     n_lines = 500,
+  --   },
+  -- },
   {
     'nvim-mini/mini.ai',
     event = 'VeryLazy',
-    opts = {
-      -- NOTE: Avoid conflicts with the built-in incremental selection mappings
-      -- on Neovim >= 0.12 (see `:help treesitter-incremental-selection`)
-      mappings = {
-        around_next = 'aa',
-        inside_next = 'ii',
-      },
-      n_lines = 500,
-    },
+    opts = function()
+      local ai = require 'mini.ai'
+      return {
+        n_lines = 500,
+        custom_textobjects = {
+          o = ai.gen_spec.treesitter { -- code block
+            a = { '@block.outer', '@conditional.outer', '@loop.outer' },
+            i = { '@block.inner', '@conditional.inner', '@loop.inner' },
+          },
+          f = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function
+          c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' }, -- class
+          t = { '<([%p%w]-)%f[^<%w][^<>]->.-</%1>', '^<.->().*()</[^/]->$' }, -- tags
+          d = { '%f[%d]%d+' }, -- digits
+          e = { -- Word with case
+            { '%u[%l%d]+%f[^%l%d]', '%f[%S][%l%d]+%f[^%l%d]', '%f[%P][%l%d]+%f[^%l%d]', '^[%l%d]+%f[^%l%d]' },
+            '^().*()$',
+          },
+          -- g = LazyVim.mini.ai_buffer, -- buffer
+          u = ai.gen_spec.function_call(), -- u for "Usage"
+          U = ai.gen_spec.function_call { name_pattern = '[%w_]' }, -- without dot in function name
+        },
+      }
+    end,
+    config = function(_, opts)
+      require('mini.ai').setup(opts)
+      on_load('which-key.nvim', function()
+        vim.schedule(function() ai_whichkey(opts) end)
+      end)
+    end,
   },
-
   -- [[ Add/delete/replace surroundings (brackets, quotes, etc.) ]]
   --
   -- - gsaiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
