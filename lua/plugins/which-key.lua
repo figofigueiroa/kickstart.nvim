@@ -1,8 +1,9 @@
 -- [[ which-key.nvim ]]
 -- Useful plugin to show you pending keybinds.
-vim.pack.add { Gh 'folke/which-key.nvim' }
-Later(function()
-  require('which-key').setup {
+return {
+  'folke/which-key.nvim',
+  event = 'VeryLazy',
+  opts = {
     -- Delay between pressing a key and opening which-key (milliseconds)
     delay = 0,
     icons = { mappings = vim.g.have_nerd_font },
@@ -25,5 +26,5 @@ Later(function()
       { '<leader>gr', group = 'Lsp Actions', mode = { 'n', 'v' } },
       { '<leader>q', group = 'Session Manager', mode = { 'n', 'v' } },
     },
-  }
-end)
+  },
+}

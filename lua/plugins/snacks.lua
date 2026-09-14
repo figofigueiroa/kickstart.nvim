@@ -1,28 +1,34 @@
-vim.pack.add { Gh 'folke/snacks.nvim' }
-vim.g.snacks_animate = false
--- See `:help snacks.nvim` and `:help snacks-picker`
-require('snacks').setup {
-  -- snacks.picker overrides vim.ui.select automatically
-  picker = { enabled = true },
+-- [[ snacks.nvim ]]
+-- Picker, dashboard, notifier, toggles, terminal, ... Eager (priority 1000)
+-- so `Snacks` and `vim.ui.select` are available from the start, like before.
+return {
+  'folke/snacks.nvim',
+  priority = 1000,
+  lazy = false,
+  init = function() vim.g.snacks_animate = false end,
+  -- See `:help snacks.nvim` and `:help snacks-picker`
+  opts = {
+    -- snacks.picker overrides vim.ui.select automatically
+    picker = { enabled = true },
 
-  bigfile = { enabled = true },
-  dashboard = {
-    preset = {
-      pick = nil,
-      ---@type snacks.dashboard.Item[]
-      keys = {
-        { icon = ' ', key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
-        { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
-        { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
-        { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
-        { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
-        -- FIX: was `section = 'session'`, which autodetects persistence.nvim.
-        -- persistence is gone, so call the mini.sessions loader exported by
-        -- plugins/mini.lua instead.
-        { icon = ' ', key = 's', desc = 'Restore Session', action = function() LoadCwdSession() end },
-        { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
-      },
-      header = [[
+    bigfile = { enabled = true },
+    dashboard = {
+      preset = {
+        pick = nil,
+        ---@type snacks.dashboard.Item[]
+        keys = {
+          { icon = ' ', key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
+          { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
+          { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
+          { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
+          { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
+          -- FIX: was `section = 'session'`, which autodetects persistence.nvim.
+          -- persistence is gone, so call the mini.sessions loader exported by
+          -- plugins/mini.lua instead.
+          { icon = ' ', key = 's', desc = 'Restore Session', action = function() LoadCwdSession() end },
+          { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
+        },
+        header = [[
                                                                              
                ████ ██████           █████      ██                     
               ███████████             █████                             
@@ -32,184 +38,188 @@ require('snacks').setup {
           ███████████ ███    ███ █████████ █████ █████ ████ █████  
          ██████  █████████████████████ ████ █████ █████ ████ ██████ 
       ]],
-    },
-    sections = {
-      { section = 'header' },
-      {
-        section = 'keys',
-        indent = 1,
-        padding = 1,
       },
-      { section = 'recent_files', icon = ' ', title = 'Recent Files', indent = 3, padding = 2 },
-      {
-        text = (function()
-          if not vim.g.start_time then return { { 'Startup: n/a', hl = 'SnacksDashboardFooter' } } end
-          local elapsed = vim.fn.reltimefloat(vim.fn.reltime(vim.g.start_time)) * 1000
-          return {
-            { '⚡ ', hl = 'SnacksDashboardIcon' },
-            { string.format('Startup: %.2fms', elapsed), hl = 'SnacksDashboardFooter' },
-          }
-        end)(),
-        padding = 1,
+      sections = {
+        { section = 'header' },
+        {
+          section = 'keys',
+          indent = 1,
+          padding = 1,
+        },
+        { section = 'recent_files', icon = ' ', title = 'Recent Files', indent = 3, padding = 2 },
+        {
+          text = (function()
+            if not vim.g.start_time then return { { 'Startup: n/a', hl = 'SnacksDashboardFooter' } } end
+            local elapsed = vim.fn.reltimefloat(vim.fn.reltime(vim.g.start_time)) * 1000
+            return {
+              { '⚡ ', hl = 'SnacksDashboardIcon' },
+              { string.format('Startup: %.2fms', elapsed), hl = 'SnacksDashboardFooter' },
+            }
+          end)(),
+          padding = 1,
+        },
       },
     },
-  },
-  explorer = { enabled = false },
-  indent = {
+    explorer = { enabled = false },
     indent = {
-      enabled = false, -- enable indent guides
+      indent = {
+        enabled = false, -- enable indent guides
+      },
+      scope = {
+        enabled = true, -- enable highlighting the current scope
+        priority = 200,
+        char = '╎',
+        underline = false,
+        only_current = true,
+        hl = 'SnacksIndentScope', ---@type string|string[] hl group for scopes
+      },
     },
-    scope = {
-      enabled = true, -- enable highlighting the current scope
-      priority = 200,
-      char = '╎',
-      underline = false,
-      only_current = true,
-      hl = 'SnacksIndentScope', ---@type string|string[] hl group for scopes
+    input = { enabled = false },
+    notifier = {
+      enabled = true,
+      timeout = 3000,
     },
+    quickfile = { enabled = true },
+    scope = { enabled = true },
+    scroll = { enabled = false },
+    statuscolumn = { enabled = false }, -- owned by mini.statuscolumn
+    -- FIX: this was `false` while lsp.lua mapped ]] / [[ / <a-n> / <a-p> to
+    -- Snacks.words.jump — four dead keymaps. Enabling it also let us delete the
+    -- hand-rolled documentHighlight autocmds from lsp.lua.
+    words = { enabled = true },
   },
-  input = { enabled = false },
-  notifier = {
-    enabled = true,
-    timeout = 3000,
-    -- Renders LSP `$/progress` too — this is why fidget.nvim was cut.
-  },
-  quickfile = { enabled = true },
-  scope = { enabled = true },
-  scroll = { enabled = false },
-  statuscolumn = { enabled = false }, -- owned by mini.statuscolumn
-  -- FIX: this was `false` while lsp.lua mapped ]] / [[ / <a-n> / <a-p> to
-  -- Snacks.words.jump — four dead keymaps. Enabling it also let us delete the
-  -- hand-rolled documentHighlight autocmds from lsp.lua.
-  words = { enabled = true },
-}
 
--- ============================================================
--- Picker keymaps
--- ============================================================
-vim.keymap.set('n', '<leader>sh', function() Snacks.picker.help() end, { desc = '[S]earch [H]elp' })
-vim.keymap.set('n', '<leader>sk', function() Snacks.picker.keymaps() end, { desc = '[S]earch [K]eymaps' })
-vim.keymap.set('n', '<leader>sf', function() Snacks.picker.files() end, { desc = '[S]earch [F]iles' })
-vim.keymap.set('n', '<leader>ss', function() Snacks.picker.lsp_symbols() end, { desc = 'LSP Symbols' })
-vim.keymap.set('n', '<leader>sS', function() Snacks.picker.lsp_workspace_symbols() end, { desc = 'LSP Workspace Symbols' })
-vim.keymap.set({ 'n', 'v' }, '<leader>sw', function() Snacks.picker.grep_word() end, { desc = '[S]earch current [W]ord' })
-vim.keymap.set('n', '<leader>sg', function() Snacks.picker.grep() end, { desc = '[S]earch by [G]rep' })
-vim.keymap.set('n', '<leader>sd', function() Snacks.picker.diagnostics() end, { desc = '[S]earch [D]iagnostics' })
-vim.keymap.set('n', '<leader>sr', function() Snacks.picker.resume() end, { desc = '[S]earch [R]esume' })
-vim.keymap.set('n', '<leader>s.', function() Snacks.picker.recent() end, { desc = '[S]earch Recent Files ("." for repeat)' })
-vim.keymap.set('n', '<leader>sc', function() Snacks.picker.commands() end, { desc = '[S]earch [C]ommands' })
-vim.keymap.set('n', '<leader>sp', function() Snacks.picker.projects() end, { desc = 'Projects' })
-vim.keymap.set('n', '<leader><leader>', function() Snacks.picker.buffers() end, { desc = '[ ] Find existing buffers' })
-vim.keymap.set('n', '<leader>sm', function() Snacks.picker.marks() end, { desc = '[S]earch [M]arks' })
-vim.keymap.set('n', '<leader>sl', function() Snacks.picker.loclist() end, { desc = '[S]earch [L]ocation List' })
-vim.keymap.set('n', '<leader>sq', function() Snacks.picker.qflist() end, { desc = '[S]earch [Q]uickfix List' })
-vim.keymap.set('n', '<leader>s"', function() Snacks.picker.registers() end, { desc = '[S]earch [R]egisters' })
--- NOTE: these two need todo-comments.nvim installed — the snacks source reads
--- its keyword patterns. That is why todo-comments stays in the config.
-vim.keymap.set('n', '<leader>st', function() Snacks.picker.todo_comments() end, { desc = '[S]earch [T]odo Comments' })
-vim.keymap.set('n', '<leader>sT', function() Snacks.picker.todo_comments { keywords = { 'TODO', 'FIX', 'FIXME', 'NOTE' } } end, { desc = 'Todo/Fix/Fixme' })
-vim.keymap.set('n', '<leader>sn', function() Snacks.picker.notifications() end, { desc = 'Search Notification History' })
+  -- ============================================================
+  -- Picker keymaps
+  -- ============================================================
+  keys = {
+    { '<leader>sh', function() Snacks.picker.help() end, desc = '[S]earch [H]elp' },
+    { '<leader>sk', function() Snacks.picker.keymaps() end, desc = '[S]earch [K]eymaps' },
+    { '<leader>sf', function() Snacks.picker.files() end, desc = '[S]earch [F]iles' },
+    { '<leader>ss', function() Snacks.picker.lsp_symbols() end, desc = 'LSP Symbols' },
+    { '<leader>sS', function() Snacks.picker.lsp_workspace_symbols() end, desc = 'LSP Workspace Symbols' },
+    { '<leader>sw', function() Snacks.picker.grep_word() end, mode = { 'n', 'v' }, desc = '[S]earch current [W]ord' },
+    { '<leader>sg', function() Snacks.picker.grep() end, desc = '[S]earch by [G]rep' },
+    { '<leader>sd', function() Snacks.picker.diagnostics() end, desc = '[S]earch [D]iagnostics' },
+    { '<leader>sr', function() Snacks.picker.resume() end, desc = '[S]earch [R]esume' },
+    { '<leader>s.', function() Snacks.picker.recent() end, desc = '[S]earch Recent Files ("." for repeat)' },
+    { '<leader>sc', function() Snacks.picker.commands() end, desc = '[S]earch [C]ommands' },
+    { '<leader>sp', function() Snacks.picker.projects() end, desc = 'Projects' },
+    { '<leader><leader>', function() Snacks.picker.buffers() end, desc = '[ ] Find existing buffers' },
+    { '<leader>sm', function() Snacks.picker.marks() end, desc = '[S]earch [M]arks' },
+    { '<leader>sl', function() Snacks.picker.loclist() end, desc = '[S]earch [L]ocation List' },
+    { '<leader>sq', function() Snacks.picker.qflist() end, desc = '[S]earch [Q]uickfix List' },
+    { '<leader>s"', function() Snacks.picker.registers() end, desc = '[S]earch [R]egisters' },
+    -- NOTE: these two need todo-comments.nvim installed — the snacks source reads
+    -- its keyword patterns. That is why todo-comments stays in the config.
+    { '<leader>st', function() Snacks.picker.todo_comments() end, desc = '[S]earch [T]odo Comments' },
+    { '<leader>sT', function() Snacks.picker.todo_comments { keywords = { 'TODO', 'FIX', 'FIXME', 'NOTE' } } end, desc = 'Todo/Fix/Fixme' },
+    { '<leader>sn', function() Snacks.picker.notifications() end, desc = 'Search Notification History' },
 
--- Git (mini.diff owns the signs; these are the history/blame pickers that
--- replaced gitsigns' blame and neogit/diffview)
-vim.keymap.set('n', '<leader>gL', function() Snacks.picker.git_log() end, { desc = 'Git Log (cwd)' })
-vim.keymap.set('n', '<leader>gb', function() Snacks.picker.git_log_line() end, { desc = 'Git Blame Line' })
-vim.keymap.set('n', '<leader>gf', function() Snacks.picker.git_log_file() end, { desc = 'Git Current File History' })
-vim.keymap.set('n', '<leader>gd', function() Snacks.picker.git_diff() end, { desc = 'Git Diff (hunks)' })
-vim.keymap.set('n', '<leader>gg', function() Snacks.lazygit() end, { desc = 'Lazygit' })
+    -- Git (mini.diff owns the signs; these are the history/blame pickers that
+    -- replaced gitsigns' blame and neogit/diffview)
+    { '<leader>gL', function() Snacks.picker.git_log() end, desc = 'Git Log (cwd)' },
+    { '<leader>gb', function() Snacks.picker.git_log_line() end, desc = 'Git Blame Line' },
+    { '<leader>gf', function() Snacks.picker.git_log_file() end, desc = 'Git Current File History' },
+    { '<leader>gd', function() Snacks.picker.git_diff() end, desc = 'Git Diff (hunks)' },
+    { '<leader>gg', function() Snacks.lazygit() end, desc = 'Lazygit' },
 
--- Fuzzily search lines in the current buffer
-vim.keymap.set('n', '<leader>/', function() Snacks.picker.lines() end, { desc = '[/] Fuzzily search in current buffer' })
+    -- Fuzzily search lines in the current buffer
+    { '<leader>/', function() Snacks.picker.lines() end, desc = '[/] Fuzzily search in current buffer' },
 
--- Search by grep only in open buffers
-vim.keymap.set(
-  'n',
-  '<leader>s/',
-  function() Snacks.picker.grep { open_buffers = true, title = 'Live Grep in Open Files' } end,
-  { desc = '[S]earch [/] in Open Files' }
-)
+    -- Search by grep only in open buffers
+    {
+      '<leader>s/',
+      function() Snacks.picker.grep { open_buffers = true, title = 'Live Grep in Open Files' } end,
+      desc = '[S]earch [/] in Open Files',
+    },
 
--- Shortcut for searching your Neovim configuration files
-vim.keymap.set(
-  'n',
-  '<leader>snc',
-  function() Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true } end,
-  { desc = '[S]earch [N]eovim [C]onfig files' }
-)
+    -- Shortcut for searching your Neovim configuration files
+    {
+      '<leader>snc',
+      function() Snacks.picker.files { cwd = vim.fn.stdpath 'config', follow = true } end,
+      desc = '[S]earch [N]eovim [C]onfig files',
+    },
 
--- ============================================================
--- Obsidian vault tags picker (search only in tags)
--- ============================================================
-do
-  local function pick_vault_tags()
-    local vault = vim.fn.expand '~/Documents/notes/vault'
-    Snacks.picker.pick {
-      title = 'Vault Tags',
-      prompt = 'Tag? ',
-      finder = function()
-        local items, seen = {}, {}
-        local add = function(file, tag)
-          tag = tag:gsub('^#', ''):gsub('[%]%,]', '')
-          if tag ~= '' and not seen[tag] then
-            seen[tag] = true
-            table.insert(items, { text = '# ' .. tag, search = tag, file = file })
-          end
-        end
-
-        local inline = 'rg --no-heading -o -N "#[A-Za-z0-9_/+%.-]+" ' .. vim.fn.fnameescape(vault)
-        for line in io.popen(inline):lines() do
-          local file, tag = line:match '^(.-):#([A-Za-z0-9_/+%.-]+)'
-          if file then add(file, tag) end
-        end
-
-        local fm = 'rg --no-heading -n -A 40 "^tags:" ' .. vim.fn.fnameescape(vault)
-        local cur
-        for line in io.popen(fm):lines() do
-          local file, rest = line:match '^(.-):%d+:tags:%s*(.*)$'
-          if file then
-            cur = file
-            local arr = rest:gsub('[%[%]]', '')
-            for tag in (arr .. ' '):gmatch '[%w_/+-]+' do
-              add(cur, tag)
+    -- ============================================================
+    -- Obsidian vault tags picker (search only in tags)
+    -- ============================================================
+    {
+      '<leader>s#',
+      function()
+        local vault = vim.fn.expand '~/Documents/notes/vault'
+        Snacks.picker.pick {
+          title = 'Vault Tags',
+          prompt = 'Tag? ',
+          finder = function()
+            local items, seen = {}, {}
+            local add = function(file, tag)
+              tag = tag:gsub('^#', ''):gsub('[%]%,]', '')
+              if tag ~= '' and not seen[tag] then
+                seen[tag] = true
+                table.insert(items, { text = '# ' .. tag, search = tag, file = file })
+              end
             end
-          elseif cur then
-            local content = line:match '^.-%d+%-(.*)$'
-            if content and content:match '^%s*%-%-%-' then
-              cur = nil
-            elseif content then
-              local bullet = content:match '^%s*%-%s*(.-)%s*[,]?$'
-              if bullet then add(cur, bullet) end
-            end
-          end
-        end
 
-        return items
+            local inline = 'rg --no-heading -o -N "#[A-Za-z0-9_/+%.-]+" ' .. vim.fn.fnameescape(vault)
+            for line in io.popen(inline):lines() do
+              local file, tag = line:match '^(.-):#([A-Za-z0-9_/+%.-]+)'
+              if file then add(file, tag) end
+            end
+
+            local fm = 'rg --no-heading -n -A 40 "^tags:" ' .. vim.fn.fnameescape(vault)
+            local cur
+            for line in io.popen(fm):lines() do
+              local file, rest = line:match '^(.-):%d+:tags:%s*(.*)$'
+              if file then
+                cur = file
+                local arr = rest:gsub('[%[%]]', '')
+                for tag in (arr .. ' '):gmatch '[%w_/+-]+' do
+                  add(cur, tag)
+                end
+              elseif cur then
+                local content = line:match '^.-%d+%-(.*)$'
+                if content and content:match '^%s*%-%-%-' then
+                  cur = nil
+                elseif content then
+                  local bullet = content:match '^%s*%-%s*(.-)%s*[,]?$'
+                  if bullet then add(cur, bullet) end
+                end
+              end
+            end
+
+            return items
+          end,
+        }
       end,
-    }
-  end
+      desc = 'Search Vault Tags',
+    },
+  },
 
-  vim.keymap.set('n', '<leader>s#', pick_vault_tags, { desc = 'Search Vault Tags' })
-end
+  -- ============================================================
+  -- Toggles
+  -- ============================================================
+  config = function(_, opts)
+    require('snacks').setup(opts)
 
--- ============================================================
--- Toggles
--- ============================================================
-Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>us'
-Snacks.toggle.option('wrap', { name = 'Wrap' }):map '<leader>uw'
-Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):map '<leader>uL'
-Snacks.toggle.diagnostics():map '<leader>ud'
-Snacks.toggle.line_number():map '<leader>ul'
-Snacks.toggle.option('conceallevel', { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2, name = 'Conceal Level' }):map '<leader>uc'
-Snacks.toggle.treesitter():map '<leader>uT'
-Snacks.toggle.dim():map '<leader>uD'
-Snacks.toggle.indent():map '<leader>ug'
-Snacks.toggle.words():map '<leader>uk'
-Snacks.toggle.profiler():map '<leader>dpp'
-Snacks.toggle.profiler_highlights():map '<leader>dph'
-Snacks.toggle.zoom():map('<leader>wz'):map '<leader>uZ'
-Snacks.toggle.zen():map '<leader>uz'
+    Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>us'
+    Snacks.toggle.option('wrap', { name = 'Wrap' }):map '<leader>uw'
+    Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):map '<leader>uL'
+    Snacks.toggle.diagnostics():map '<leader>ud'
+    Snacks.toggle.line_number():map '<leader>ul'
+    Snacks.toggle.option('conceallevel', { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2, name = 'Conceal Level' }):map '<leader>uc'
+    Snacks.toggle.treesitter():map '<leader>uT'
+    Snacks.toggle.dim():map '<leader>uD'
+    Snacks.toggle.indent():map '<leader>ug'
+    Snacks.toggle.words():map '<leader>uk'
+    Snacks.toggle.profiler():map '<leader>dpp'
+    Snacks.toggle.profiler_highlights():map '<leader>dph'
+    Snacks.toggle.zoom():map('<leader>wz'):map '<leader>uZ'
+    Snacks.toggle.zen():map '<leader>uz'
 
--- NOTE: `Snacks.toggle.scroll():map '<leader>uS'` was removed along with
--- mini.animate — `scroll = { enabled = false }` above means there is nothing
--- to toggle. Flip it to `true` and add the mapping back if you want animated
--- scrolling.
+    -- NOTE: `Snacks.toggle.scroll():map '<leader>uS'` was removed along with
+    -- mini.animate — `scroll = { enabled = false }` above means there is nothing
+    -- to toggle. Flip it to `true` and add the mapping back if you want animated
+    -- scrolling.
+  end,
+}
