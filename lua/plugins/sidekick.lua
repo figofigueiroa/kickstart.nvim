@@ -1,21 +1,23 @@
-vim.pack.add {
-  Gh 'folke/sidekick.nvim',
-}
-
-vim.keymap.set('n', '<tab>', function()
-  if not require('sidekick').nes_jump_or_apply() then
-    return '<Tab>'
-  end
-end, { expr = true, desc = 'Goto/Apply Next Edit Suggestion' })
-
-
-On_event('InsertEnter', function()
-  require('sidekick').setup {
+-- [[ sidekick.nvim ]]
+-- Next-edit-suggestion jumps. Loads on the first <Tab> press.
+return {
+  'folke/sidekick.nvim',
+  keys = {
+    {
+      '<tab>',
+      function()
+        if not require('sidekick').nes_jump_or_apply() then return '<Tab>' end
+      end,
+      expr = true,
+      desc = 'Goto/Apply Next Edit Suggestion',
+    },
+  },
+  opts = {
     cli = {
       mux = {
         backend = 'zellij',
         enabled = true,
       },
     },
-  }
-end)
+  },
+}

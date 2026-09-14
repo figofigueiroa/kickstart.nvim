@@ -1,3 +1,4 @@
-vim.pack.add {
-  Gh "esmuellert/codediff.nvim",
+return {
+  'esmuellert/codediff.nvim',
+  cmd = 'CodeDiff',
 }

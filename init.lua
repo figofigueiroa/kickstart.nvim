@@ -1,8 +1,22 @@
----Because most plugins are hosted on GitHub, you can use the helper
----function to have less repetition in the following sections.
----@param repo string
----@return string
-function Gh(repo) return 'https://github.com/' .. repo end
+-- ============================================================
+-- SECTION 0: BOOTSTRAP LAZY.NVIM
+-- Clone lazy.nvim on first run and add it to the runtimepath.
+-- ============================================================
+local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
+  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { 'Failed to clone lazy.nvim:\n', 'ErrorMsg' },
+      { out, 'WarningMsg' },
+      { '\nPress any key to exit...', 'MoreMsg' },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
+end
+vim.opt.rtp:prepend(lazypath)
 
 -- ============================================================
 -- SECTION 1: OPTIONS
@@ -17,44 +31,37 @@ require 'config.options'
 require 'config.keymaps'
 
 -- ============================================================
--- SECTION 3: AUTOCMDS & BUILD HOOKS
--- Highlight on yank, plugin build steps
+-- SECTION 3: AUTOCMDS
+-- Highlight on yank, CodeCompanion <-> fidget hooks
 -- ============================================================
 require 'config.autocmd'
 
 -- ============================================================
--- SECTION 4: PLUGIN HELPERS
--- `Later` and `On_event` are scheduling helpers used by the
--- plugin configurations in `lua/plugins/`. They are defined here,
--- before plugins load, so they are available globally.
+-- SECTION 4: PLUGINS
+-- lazy.nvim imports every `lua/plugins/*.lua` module as a spec
+-- and lazy-loads plugins via the `event`/`keys`/`ft`/`cmd`
+-- handlers.
 -- ============================================================
-do
-  -- mini.misc is required for the `Later`/`On_event` helpers, so it is
-  -- installed here rather than in `lua/plugins/mini.lua`.
-  vim.pack.add { Gh 'nvim-mini/mini.nvim' }
-  local misc = require 'mini.misc'
-  Now = function(f) misc.safely('now', f) end
-  Later = function(f)
-    vim.schedule(function() misc.safely('later', f) end)
-  end
-  On_event = function(ev, f) misc.safely('event:' .. ev, f) end
-  Now_if_args = vim.fn.argc(-1) > 0 and Now or Later
-end
-
--- ============================================================
--- SECTION 5: PLUGINS
--- Load all plugins from `lua/plugins/`
--- ============================================================
-do
-  -- Load all plugins from `lua/plugins/*.lua`
-  require 'plugins'
-end
+require('lazy').setup {
+  spec = {
+    { import = 'plugins' },
+  },
+  install = { colorscheme = { 'alabaster', 'habamax' } },
+  checker = { enabled = false },
+  change_detection = { notify = false },
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        'gzip',
+        'tarPlugin',
+        'tohtml',
+        'tutor',
+        'zipPlugin',
+        'netrwPlugin',
+      },
+    },
+  },
+}
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
-
-
-
-
-
-

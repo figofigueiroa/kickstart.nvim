@@ -1,12 +1,18 @@
 -- [[ conform.nvim ]]
--- Formatting
-vim.pack.add { Gh 'stevearc/conform.nvim' }
-
--- Keymap uses require() lazily, so conform is only loaded when the user actually formats.
-vim.keymap.set({ 'n', 'v' }, '<leader>cf', function() require('conform').format { async = true } end, { desc = '[C]onform [F]ormat buffer' })
-
-Later(function()
-  require('conform').setup {
+-- Formatting. Loaded before a file is read so `format_on_save` is active
+-- from the first buffer; the `<leader>cf` keymap loads it on demand.
+return {
+  'stevearc/conform.nvim',
+  event = { 'BufReadPre', 'BufNewFile' },
+  keys = {
+    {
+      '<leader>cf',
+      function() require('conform').format { async = true } end,
+      mode = { 'n', 'v' },
+      desc = '[C]onform [F]ormat buffer',
+    },
+  },
+  opts = {
     notify_on_error = false,
     format_on_save = function(bufnr)
       -- You can specify filetypes to autoformat on save here:
@@ -39,5 +45,5 @@ Later(function()
       -- You can use 'stop_after_first' to run the first available formatter from the list
       -- javascript = { "prettierd", "prettier", stop_after_first = true },
     },
-  }
-end)
+  },
+}

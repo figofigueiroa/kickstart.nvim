@@ -255,44 +255,55 @@ local ensure_installed = {
   'csharpier',
 }
 
-vim.pack.add {
-  -- Still required: provides the base `lsp/<server>.lua` definitions that
-  -- `vim.lsp.enable()` reads. Do NOT drop this one.
-  Gh 'neovim/nvim-lspconfig',
-  Gh 'mason-org/mason.nvim',
-  Gh 'mfussenegger/nvim-jdtls', -- consumed by ftplugin/java.lua
+return {
+  {
+    'neovim/nvim-lspconfig',
+    event = { 'BufReadPre', 'BufNewFile' },
+    dependencies = {
+      {
+        'mason-org/mason.nvim',
+        build = ':MasonUpdate',
+        cmd = 'Mason',
+        config = function()
+          require('mason').setup {}
 
-  -- REMOVED: 'mason-org/mason-lspconfig.nvim'
-  --   It was a no-op here. `automatic_enable = false` meant it enabled
-  --   nothing, and `vim.lsp.config`/`vim.lsp.enable` below already do the
-  --   wiring. Its only remaining job was translating server names into
-  --   mason package names for mason-tool-installer — replaced by the
-  --   explicit `ensure_installed` list above.
-  --
-  -- REMOVED: 'WhoIsSethDaniel/mason-tool-installer.nvim'
-  --   Replaced by the ~6 line auto-install loop below. If you'd rather keep
-  --   the plugin, add it back and swap the loop for:
-  --     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-}
+          -- Auto-install anything missing, in the background.
+          local registry = require 'mason-registry'
+          registry.refresh(function()
+            for _, name in ipairs(ensure_installed) do
+              local ok, pkg = pcall(registry.get_package, name)
+              if ok and not pkg:is_installed() then
+                pkg:install()
+              elseif not ok then
+                vim.notify('mason: unknown package "' .. name .. '"', vim.log.levels.WARN)
+              end
+            end
+          end)
+        end,
+      },
+      -- Still required: provides the base `lsp/<server>.lua` definitions that
+      -- `vim.lsp.enable()` reads. Do NOT drop this one.
+      --
+      -- REMOVED: 'mason-org/mason-lspconfig.nvim'
+      --   It was a no-op here. `automatic_enable = false` meant it enabled
+      --   nothing, and `vim.lsp.config`/`vim.lsp.enable` below already do the
+      --   wiring. Its only remaining job was translating server names into
+      --   mason package names for mason-tool-installer — replaced by the
+      --   explicit `ensure_installed` list above.
+      --
+      -- REMOVED: 'WhoIsSethDaniel/mason-tool-installer.nvim'
+      --   Replaced by the auto-install loop above.
 
-Later(function()
-  require('mason').setup {}
-
-  -- Auto-install anything missing, in the background.
-  local registry = require 'mason-registry'
-  registry.refresh(function()
-    for _, name in ipairs(ensure_installed) do
-      local ok, pkg = pcall(registry.get_package, name)
-      if ok and not pkg:is_installed() then
-        pkg:install()
-      elseif not ok then
-        vim.notify('mason: unknown package "' .. name .. '"', vim.log.levels.WARN)
+      -- Consumed by ftplugin/java.lua, which `require`s it at FileType time.
+      -- Being a dependency (loaded on BufReadPre, before any FileType) keeps
+      -- that require safe.
+      'mfussenegger/nvim-jdtls',
+    },
+    config = function()
+      for name, server in pairs(servers) do
+        vim.lsp.config(name, server)
+        vim.lsp.enable(name)
       end
-    end
-  end)
-
-  for name, server in pairs(servers) do
-    vim.lsp.config(name, server)
-    vim.lsp.enable(name)
-  end
-end)
+    end,
+  },
+}
