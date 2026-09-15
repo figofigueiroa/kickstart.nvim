@@ -134,6 +134,33 @@ return {
         return (vim.g.have_nerd_font and '󱙺 ' or '[AI] ') .. 'thinking'
       end
 
+      -- ==========================================================
+      -- Mode colors: insert -> roxo pastel, visual -> amarelo,
+      -- v-block -> verde claro (mini links them to the theme's
+      -- diff groups by default). mini.statusline (re)creates its
+      -- default groups on every ColorScheme with `default = true`,
+      -- so these plain sets win, but a colorscheme switch wipes
+      -- them — re-applied in the ColorScheme autocmd below.
+      -- ==========================================================
+      local function define_mode_hl()
+        -- fg escuro (bg do habamax) para o bloco ler como preenchimento pastel
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeInsert', { fg = '#1c1c1c', bg = '#c8a8e8' })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeVisual', { fg = '#1c1c1c', bg = '#ffe066' })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeVBlock', { fg = '#1c1c1c', bg = '#87d787' })
+      end
+
+      -- Na tabela de modos do mini, `^V` (V-Block) compartilha
+      -- `MiniStatuslineModeVisual` com `v`/`V`; dar ao blockwise visual
+      -- o seu próprio grupo. Guarda o original ANTES de sobrescrever
+      -- (`statusline` é a mesma tabela que `MiniStatusline`).
+      local section_mode_orig = statusline.section_mode
+      ---@diagnostic disable-next-line: duplicate-set-field
+      statusline.section_mode = function(args)
+        local mode, mode_hl = section_mode_orig(args)
+        if mode == 'V-Block' or mode == 'V-B' then mode_hl = 'MiniStatuslineModeVBlock' end
+        return mode, mode_hl
+      end
+
       -- ========================================================
       -- Blocos "flutuantes": cada grupo da linha ganha arcos
       -- (U+E0B6 / U+E0B4) desenhados com a cor do bloco.
@@ -145,6 +172,7 @@ return {
         'MiniStatuslineModeNormal',
         'MiniStatuslineModeInsert',
         'MiniStatuslineModeVisual',
+        'MiniStatuslineModeVBlock',
         'MiniStatuslineModeReplace',
         'MiniStatuslineModeCommand',
         'MiniStatuslineModeOther',
@@ -174,11 +202,19 @@ return {
         end
       end
 
+      -- Modos primeiro: define_sep_hl deriva a cor dos arcos do bg dos
+      -- grupos de modo, então as cores precisam estar definidas antes.
+      define_mode_hl()
       define_sep_hl()
 
       vim.api.nvim_create_autocmd('ColorScheme', {
         group = vim.api.nvim_create_augroup('user-statusline-sep', { clear = true }),
-        callback = function() vim.schedule(define_sep_hl) end,
+        callback = function()
+          vim.schedule(function()
+            define_mode_hl()
+            define_sep_hl()
+          end)
+        end,
       })
 
       local sep_left = '\238\130\182' -- U+E0B6: arco esquerdo do bloco
