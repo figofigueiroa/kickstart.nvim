@@ -95,7 +95,8 @@ return {
   -- ==========================================================
   {
     'nvim-mini/mini.icons',
-    lazy = false,
+    -- lazy = false,
+    event = 'LazyFile',
     config = function()
       if vim.g.have_nerd_font then
         require('mini.icons').setup()
@@ -110,13 +111,13 @@ return {
   -- ==========================================================
   {
     'nvim-mini/mini.statuscolumn',
-    event = 'VeryLazy',
+    event = 'LazyFile',
     opts = {},
   },
 
   {
     'nvim-mini/mini.statusline',
-    event = 'VeryLazy',
+    event = 'LazyFile',
     dependencies = { 'nvim-mini/mini.icons' },
     config = function()
       local statusline = require 'mini.statusline'
@@ -246,7 +247,7 @@ return {
   -- ==========================================================
   {
     'nvim-mini/mini.jump',
-    event = 'VeryLazy',
+    event = 'LazyFile',
     opts = {},
   },
 
@@ -287,7 +288,7 @@ return {
   -- },
   {
     'nvim-mini/mini.ai',
-    event = 'VeryLazy',
+    event = 'LazyFile',
     opts = function()
       local ai = require 'mini.ai'
       return {
@@ -325,7 +326,7 @@ return {
   -- - gsr)'  - [S]urround [R]eplace [)] [']
   {
     'nvim-mini/mini.surround',
-    event = 'VeryLazy',
+    event = 'LazyFile',
     opts = {
       mappings = {
         add = 'gsa',
@@ -346,7 +347,7 @@ return {
   -- ==========================================================
   {
     'nvim-mini/mini.diff',
-    event = 'VeryLazy',
+    event = 'LazyFile',
     opts = {
       view = {
         style = 'sign',
@@ -384,7 +385,7 @@ return {
   -- VeryLazy (not `keys`) so the VimLeavePre write hook is always active.
   {
     'nvim-mini/mini.sessions',
-    event = 'VeryLazy',
+    event = { 'LazyFile', 'VeryLazy' },
     config = function()
       local sessions = require 'mini.sessions'
       sessions.setup {

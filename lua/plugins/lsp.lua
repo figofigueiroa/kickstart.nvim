@@ -253,6 +253,7 @@ local ensure_installed = {
   'markdownlint-cli2',
   'biome',
   'csharpier',
+  'shfmt',
 }
 
 return {
@@ -263,6 +264,7 @@ return {
       {
         'mason-org/mason.nvim',
         build = ':MasonUpdate',
+        keys = { { '<leader>cm', '<cmd>Mason<cr>', desc = 'Mason' } },
         cmd = 'Mason',
         config = function()
           require('mason').setup {}

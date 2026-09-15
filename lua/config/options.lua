@@ -4,6 +4,16 @@
 -- ============================================================
 vim.g.start_time = vim.fn.reltime()
 
+vim.g.lazy_events_config = {
+  simple = {
+    LazyFile = { 'BufReadPost', 'BufNewFile', 'BufWritePre' },
+  },
+  projects = {
+    -- triggers `LazyProject:cmake` if glob matches
+    obsidian = { '.obsidian' },
+  },
+}
+
 do
   -- Enable faster startup by caching compiled Lua modules
   vim.loader.enable()
@@ -89,7 +99,7 @@ do
   vim.opt.fillchars = {
     foldopen = '',
     foldclose = '',
-    fold = ' ',
+    fold = '-',
     foldsep = ' ',
     diff = '╱',
     eob = ' ',

@@ -22,7 +22,7 @@ local vault_session = in_vault(vim.fn.getcwd())
 return {
   'sudo-tee/opencode.nvim',
   enabled = not is_windows and not vault_session,
-  event = 'VeryLazy',
+  event = 'LazyFile',
   dependencies = {
     -- render-markdown powers the tool output windows (its own spec lives in
     -- lua/plugins/render-markdown.lua)

@@ -4,6 +4,6 @@
 -- keyword patterns, matching the old deferred setup.
 return {
   'folke/todo-comments.nvim',
-  event = 'VeryLazy',
+  event = 'LazyFile',
   opts = { signs = false },
 }

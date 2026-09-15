@@ -5,10 +5,14 @@
 --
 -- Eager (like before): the FileType attach autocmd must exist from startup so
 -- treesitter also works in dashboard/spawned buffers (e.g. opencode output).
+--
+
 return {
   'nvim-treesitter/nvim-treesitter',
   branch = 'main',
-  lazy = false,
+  -- lazy = false,
+  event = { 'LazyFile', 'VeryLazy' },
+  cmd = { 'TSUpdate', 'TSInstall', 'TSLog', 'TSUninstall' },
   build = ':TSUpdate',
   config = function()
     -- Ensure basic parsers are installed
@@ -20,13 +24,19 @@ return {
     local function treesitter_try_attach(buf, language)
       -- Check if a parser exists and load it
       if not vim.treesitter.language.add(language) then return end
-      -- Enable syntax highlighting and other treesitter features
-      vim.treesitter.start(buf, language)
+      -- Enable syntax highlighting and other treesitter features.
+      -- pcall: a parser with a broken/missing query shouldn't blow up on
+      -- FileType (same defensive call LazyVim uses).
+      local ok, err = pcall(vim.treesitter.start, buf, language)
+      if not ok then
+        vim.schedule(function() vim.notify('treesitter: ' .. language .. ': ' .. tostring(err), vim.log.levels.WARN) end)
+        return
+      end
 
       -- Enable treesitter based folds
       -- For more info on folds see `:help folds`
-      -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-      -- vim.wo.foldmethod = 'expr'
+      vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+      vim.wo.foldmethod = 'expr'
 
       -- Check if treesitter indentation is available for this language, and if so enable it
       -- in case there is no indent query, the indentexpr will fallback to the vim's built in one
