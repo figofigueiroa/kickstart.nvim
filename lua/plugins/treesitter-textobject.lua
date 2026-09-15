@@ -1,7 +1,7 @@
 return {
   'nvim-treesitter/nvim-treesitter-textobjects',
   branch = 'main',
-  event = 'LazyFile',
+  event = { 'BufReadPre', 'BufNewFile' },
   opts = {
     move = {
       enable = true,
