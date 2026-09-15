@@ -48,7 +48,7 @@ require('lazy').setup {
     { 'bwpge/lazy-events.nvim', import = 'lazy-events.import', lazy = false },
     { import = 'plugins' },
   },
-  install = { colorscheme = { 'alabaster', 'habamax' } },
+  install = { colorscheme = {  'habamax' } },
   checker = { enabled = false },
   change_detection = { notify = false },
   performance = {

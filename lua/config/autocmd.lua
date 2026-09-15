@@ -215,3 +215,28 @@ end
 --     end
 --   end,
 -- })
+-- Fix floating windows and separators for habamax.
+-- habamax links `FloatBorder` -> `WinSeparator` -> `VertSplit`, which sets BOTH
+-- fg and bg to #767676: the border glyphs become invisible against their own
+-- background and every float (snacks, which-key, blink, ...) gets a solid gray
+-- slab around the darker `NormalFloat` (-> Pmenu #3a3a3a). Same for the lines
+-- between splits: the `VertSplit` background fills the whole separator cell
+-- instead of letting the thin `│`/`─` glyphs (from 'fillchars') show through.
+-- NOTE: the colorscheme is sourced in `config/options.lua`, which runs BEFORE
+-- this file, so a plain ColorScheme autocmd never fires at startup — apply
+-- once now and keep the autocmd for later `:colorscheme habamax` runs.
+local function fix_habamax_hl()
+  -- Floats use the editor background instead of Pmenu's #3a3a3a
+  vim.api.nvim_set_hl(0, 'NormalFloat', { link = 'Normal' })
+  -- Thin border line (Comment gray) with no background of its own
+  vim.api.nvim_set_hl(0, 'FloatBorder', { fg = '#767676', bg = 'NONE' })
+  -- Thin separator between splits (`WinSeparator` links to `VertSplit`)
+  vim.api.nvim_set_hl(0, 'VertSplit', { fg = '#767676', bg = 'NONE' })
+end
+if vim.g.colors_name == 'habamax' then fix_habamax_hl() end
+
+vim.api.nvim_create_autocmd('ColorScheme', {
+  pattern = 'habamax',
+  group = augroup 'habamax_floats',
+  callback = fix_habamax_hl,
+})

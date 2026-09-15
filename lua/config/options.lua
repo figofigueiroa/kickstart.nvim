@@ -4,6 +4,7 @@
 -- ============================================================
 vim.g.start_time = vim.fn.reltime()
 
+vim.cmd.colorscheme('habamax')
 vim.g.lazy_events_config = {
   simple = {
     LazyFile = { 'BufReadPost', 'BufNewFile', 'BufWritePre' },
@@ -46,6 +47,7 @@ do
   vim.o.mouse = 'a'
   vim.o.winborder = 'double'
 
+  
   -- Don't show the mode, since it's already in the status line
   vim.o.showmode = false
 
