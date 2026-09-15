@@ -5,10 +5,14 @@
 --
 -- Eager (like before): the FileType attach autocmd must exist from startup so
 -- treesitter also works in dashboard/spawned buffers (e.g. opencode output).
+--
+
 return {
   'nvim-treesitter/nvim-treesitter',
   branch = 'main',
   lazy = false,
+  event = { 'VeryLazy' },
+  cmd = { 'TSUpdate', 'TSInstall', 'TSLog', 'TSUninstall' },
   build = ':TSUpdate',
   config = function()
     -- Ensure basic parsers are installed
