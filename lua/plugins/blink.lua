@@ -5,29 +5,37 @@ return {
   -- `friendly-snippets` contains a variety of premade snippets.
   --    See the README about individual language/framework/plugin snippets:
   --    https://github.com/rafamadriz/friendly-snippets
-  { 'rafamadriz/friendly-snippets', lazy = true },
+  { 'rafamadriz/friendly-snippets' },
 
-  { 'fang2hou/blink-copilot', lazy = true },
+  { 'fang2hou/blink-copilot', event = 'InsertEnter' },
 
   {
     'L3MON4D3/LuaSnip',
     lazy = true,
-    version = '2.*',
     build = function(plugin)
       -- `make install_jsregexp` is unavailable on Windows and requires make.
       if vim.fn.has 'win32' ~= 1 and vim.fn.executable 'make' == 1 then vim.fn.system { 'make', '-C', plugin.dir, 'install_jsregexp' } end
     end,
-    config = function()
-      require('luasnip').setup {}
-      require('luasnip.loaders.from_vscode').lazy_load()
-    end,
+    dependencies = {
+      {
+        'rafamadriz/friendly-snippets',
+        config = function()
+          require('luasnip.loaders.from_vscode').lazy_load()
+          require('luasnip.loaders.from_vscode').lazy_load { paths = { vim.fn.stdpath 'config' .. '/snippets' } }
+        end,
+      },
+    },
+    opts = {
+      history = true,
+      delete_check_events = 'TextChanged',
+    },
   },
 
   -- [[ Autocomplete Engine ]]
   {
     'saghen/blink.cmp',
     version = '1.*',
-    event = 'InsertEnter',
+    event = { 'InsertEnter', 'CmdlineEnter' },
     dependencies = {
       'L3MON4D3/LuaSnip',
       'rafamadriz/friendly-snippets',

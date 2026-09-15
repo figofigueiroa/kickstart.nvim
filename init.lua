@@ -44,6 +44,8 @@ require 'config.autocmd'
 -- ============================================================
 require('lazy').setup {
   spec = {
+
+    { 'bwpge/lazy-events.nvim', import = 'lazy-events.import', lazy = false },
     { import = 'plugins' },
   },
   install = { colorscheme = { 'alabaster', 'habamax' } },

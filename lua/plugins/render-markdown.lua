@@ -3,6 +3,7 @@
 -- matching the old ftplugin/opencode_output.lua setup).
 return {
   'MeanderingProgrammer/render-markdown.nvim',
+  lazy = true,
   ft = { 'markdown', 'opencode_output', 'kulala_ui' },
   dependencies = { 'nvim-treesitter/nvim-treesitter' },
   opts = {

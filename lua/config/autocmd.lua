@@ -181,37 +181,37 @@ local function wk_obsidian_group()
   return true
 end
 
-vim.api.nvim_create_autocmd('User', {
-  desc = 'Keymaps do Obsidian para o buffer de nota',
-  pattern = 'ObsidianNoteEnter',
-  group = vim.api.nvim_create_augroup('user-obsidian-note', { clear = true }),
-  callback = function()
-    local function map(lhs, rhs, desc) vim.keymap.set('n', lhs, rhs, { buffer = true, desc = desc }) end
-
-    -- map('<leader>oo', '<cmd>Obsidian open<cr>', 'Open in Obsidian app')
-    map('<leader>on', '<cmd>Obsidian new<cr>', 'New note')
-    map('<leader>oq', '<cmd>Obsidian quick_switch<cr>', 'Quick switch')
-    map('<leader>os', '<cmd>Obsidian search<cr>', 'Search in vault')
-    map('<leader>of', '<cmd>Obsidian follow_link<cr>', 'Follow link')
-    map('<leader>ob', '<cmd>Obsidian backlinks<cr>', 'Backlinks')
-    map('<leader>ol', '<cmd>Obsidian links<cr>', 'Links of the note')
-    map('<leader>ot', '<cmd>Obsidian today<cr>', "Today's daily note")
-    map('<leader>oc', '<cmd>Obsidian toggle_checkbox<cr>', 'Toggle checkbox')
-    map('<leader>oT', '<cmd>Obsidian template<cr>', 'Insert template')
-    map('<leader>or', '<cmd>Obsidian rename<cr>', 'Rename note')
-    -- map('<leader>op', '<cmd>Obsidian paste_img<cr>', 'Paste image')
-
-    if not wk_obsidian_group() then
-      -- which-key (VeryLazy) pode carregar depois do primeiro NoteEnter:
-      -- registrar quando chegar, se ainda estivermos numa nota.
-      vim.api.nvim_create_autocmd('User', {
-        pattern = 'VeryLazy',
-        once = true,
-        group = vim.api.nvim_create_augroup('user-obsidian-wk', { clear = true }),
-        callback = function()
-          if vim.b.obsidian_buffer then wk_obsidian_group() end
-        end,
-      })
-    end
-  end,
-})
+-- vim.api.nvim_create_autocmd('User', {
+--   desc = 'Keymaps do Obsidian para o buffer de nota',
+--   pattern = 'ObsidianNoteEnter',
+--   group = vim.api.nvim_create_augroup('user-obsidian-note', { clear = true }),
+--   callback = function()
+--     local function map(lhs, rhs, desc) vim.keymap.set('n', lhs, rhs, { buffer = true, desc = desc }) end
+--
+--     -- map('<leader>oo', '<cmd>Obsidian open<cr>', 'Open in Obsidian app')
+--     map({ 'n', 'x' }, '<leader>on', '<cmd>Obsidian new<cr>', 'New note')
+--     map({ 'n', 'x' }, '<leader>oq', '<cmd>Obsidian quick_switch<cr>', 'Quick switch')
+--     map({ 'n', 'x' }, '<leader>os', '<cmd>Obsidian search<cr>', 'Search in vault')
+--     map({ 'n', 'x' }, '<leader>of', '<cmd>Obsidian follow_link<cr>', 'Follow link')
+--     map('<leader>ob', '<cmd>Obsidian backlinks<cr>', 'Backlinks')
+--     map('<leader>ol', '<cmd>Obsidian links<cr>', 'Links of the note')
+--     map('<leader>ot', '<cmd>Obsidian today<cr>', "Today's daily note")
+--     map('<leader>oc', '<cmd>Obsidian toggle_checkbox<cr>', 'Toggle checkbox')
+--     map('<leader>oT', '<cmd>Obsidian template<cr>', 'Insert template')
+--     map('<leader>or', '<cmd>Obsidian rename<cr>', 'Rename note')
+--     -- map('<leader>op', '<cmd>Obsidian paste_img<cr>', 'Paste image')
+--
+--     if not wk_obsidian_group() then
+--       -- which-key (VeryLazy) pode carregar depois do primeiro NoteEnter:
+--       -- registrar quando chegar, se ainda estivermos numa nota.
+--       vim.api.nvim_create_autocmd('User', {
+--         pattern = 'VeryLazy',
+--         once = true,
+--         group = vim.api.nvim_create_augroup('user-obsidian-wk', { clear = true }),
+--         callback = function()
+--           if vim.b.obsidian_buffer then wk_obsidian_group() end
+--         end,
+--       })
+--     end
+--   end,
+-- })

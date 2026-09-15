@@ -6,7 +6,7 @@ local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
 return {
   'olimorris/codecompanion.nvim',
   enabled = is_windows,
-  event = 'VimEnter',
+  event = 'LazyFile',
   dependencies = {
     'nvim-lua/plenary.nvim',
     'ravitemer/codecompanion-history.nvim',

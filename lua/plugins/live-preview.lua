@@ -3,4 +3,5 @@ return {
   dependencies = {
     'folke/snacks.nvim',
   },
+  ft = 'markdown',
 }

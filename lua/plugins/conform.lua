@@ -3,7 +3,8 @@
 -- from the first buffer; the `<leader>cf` keymap loads it on demand.
 return {
   'stevearc/conform.nvim',
-  event = { 'BufReadPre', 'BufNewFile' },
+  lazy = true,
+  cmd = 'ConformInfo',
   keys = {
     {
       '<leader>cf',

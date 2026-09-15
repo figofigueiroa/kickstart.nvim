@@ -1,18 +1,18 @@
 -- Linting
 return {
   'mfussenegger/nvim-lint',
-  event = { 'BufReadPre', 'BufNewFile' },
+  event = 'LazyFile',
   config = function()
     local lint = require 'lint'
     lint.linters_by_ft = {
       python = { 'ruff' },
-      markdown = { 'markdownlint-cli2' }, -- Make sure to install `markdownlint` via mason / npm
+      markdown = { 'markdownlint-cli2' }, -- Make sure to install `markdownlint-cli2` via mason / npm
     }
 
     -- Create autocommand which carries out the actual linting
     -- on the specified events.
     local lint_augroup = vim.api.nvim_create_augroup('lint', { clear = true })
-    vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost', 'InsertLeave' }, {
+    vim.api.nvim_create_autocmd({ 'BufWritePost', 'BufReadPost', 'InsertLeave' }, {
       group = lint_augroup,
       callback = function()
         -- Only run the linter in buffers that you can modify in order to
