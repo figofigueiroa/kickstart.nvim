@@ -96,7 +96,7 @@ return {
   {
     'nvim-mini/mini.icons',
     -- lazy = false,
-    event = 'LazyFile',
+    event = { 'BufReadPre', 'BufNewFile' },
     config = function()
       if vim.g.have_nerd_font then
         require('mini.icons').setup()
@@ -111,13 +111,13 @@ return {
   -- ==========================================================
   {
     'nvim-mini/mini.statuscolumn',
-    event = 'LazyFile',
+    event = { 'BufReadPre', 'BufNewFile' },
     opts = {},
   },
 
   {
     'nvim-mini/mini.statusline',
-    event = 'LazyFile',
+    event = { 'BufReadPre', 'BufNewFile' },
     dependencies = { 'nvim-mini/mini.icons' },
     config = function()
       local statusline = require 'mini.statusline'
@@ -283,7 +283,7 @@ return {
   -- ==========================================================
   {
     'nvim-mini/mini.jump',
-    event = 'LazyFile',
+    event = { 'BufReadPre', 'BufNewFile' },
     opts = {},
   },
 
@@ -324,7 +324,7 @@ return {
   -- },
   {
     'nvim-mini/mini.ai',
-    event = 'LazyFile',
+    event = { 'BufReadPre', 'BufNewFile' },
     opts = function()
       local ai = require 'mini.ai'
       return {
@@ -362,7 +362,7 @@ return {
   -- - gsr)'  - [S]urround [R]eplace [)] [']
   {
     'nvim-mini/mini.surround',
-    event = 'LazyFile',
+    event = { 'BufReadPre', 'BufNewFile' },
     opts = {
       mappings = {
         add = 'gsa',
@@ -383,7 +383,7 @@ return {
   -- ==========================================================
   {
     'nvim-mini/mini.diff',
-    event = 'LazyFile',
+    event = { 'BufReadPre', 'BufNewFile' },
     opts = {
       view = {
         style = 'sign',
@@ -421,7 +421,7 @@ return {
   -- VeryLazy (not `keys`) so the VimLeavePre write hook is always active.
   {
     'nvim-mini/mini.sessions',
-    event = { 'LazyFile', 'VeryLazy' },
+    event = { 'BufReadPre', 'BufNewFile', 'VeryLazy' },
     config = function()
       local sessions = require 'mini.sessions'
       sessions.setup {

@@ -2,7 +2,7 @@
 -- Useful plugin to show you pending keybinds.
 return {
   'folke/which-key.nvim',
-  event = 'LazyFile',
+  event = { 'BufReadPre', 'BufNewFile' },
   opts = {
     preset = 'modern',
     -- Delay between pressing a key and opening which-key (milliseconds)

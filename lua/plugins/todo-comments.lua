@@ -1,9 +1,10 @@
 -- [[ todo-comments ]]
 -- Highlight todo, notes, etc in comments
--- VeryLazy (not LazyFile) because the `<leader>st` snacks picker reads its
--- keyword patterns, matching the old deferred setup.
+-- Real file events (not the lazy.nvim-synthetic LazyFile) so loading also
+-- works under lazier.nvim; the `<leader>st` snacks picker reads its keyword
+-- patterns.
 return {
   'folke/todo-comments.nvim',
-  event = 'LazyFile',
+  event = { 'BufReadPre', 'BufNewFile' },
   opts = { signs = false },
 }
