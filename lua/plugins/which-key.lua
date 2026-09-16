@@ -12,7 +12,7 @@ return {
     spec = {
       { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
       -- { '<leader>t', group = '[T]est' },
-      { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+      { '<leader>h', group = '[H]arpoon Selection', mode = { 'n', 'v' } },
       { '<leader>a', group = '[A]i', mode = { 'n', 'v' } },
       { '<leader>b', group = '[B]uffer', mode = { 'n', 'v' } },
       { '<leader>x', group = 'Quickfi[X]', mode = { 'n', 'v' } },

@@ -70,6 +70,7 @@ do
   -- Configure how new splits should be opened
   vim.o.splitright = true
   vim.o.splitbelow = true
+  vim.o.winbar = '%=%m %f'
 
   -- Sets how neovim will display certain whitespace characters in the editor.
   --  See `:help 'list'`

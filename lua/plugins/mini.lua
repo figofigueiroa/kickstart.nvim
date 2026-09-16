@@ -147,6 +147,8 @@ return {
         vim.api.nvim_set_hl(0, 'MiniStatuslineModeInsert', { fg = '#1c1c1c', bg = '#c8a8e8' })
         vim.api.nvim_set_hl(0, 'MiniStatuslineModeVisual', { fg = '#1c1c1c', bg = '#ffe066' })
         vim.api.nvim_set_hl(0, 'MiniStatuslineModeVBlock', { fg = '#1c1c1c', bg = '#87d787' })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeOther', { fg = '#1c1c1c', bg = '#e39e6f' })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineFilename', { fg = '#1c1c1c', bg = '#e6daf0' })
       end
 
       -- Na tabela de modos do mini, `^V` (V-Block) compartilha
@@ -381,39 +383,39 @@ return {
   -- ==========================================================
   -- [[ mini.diff ]] — git signs, hunk textobjects, diff overlay
   -- ==========================================================
-  {
-    'nvim-mini/mini.diff',
-    event = { 'BufReadPre', 'BufNewFile' },
-    opts = {
-      view = {
-        style = 'sign',
-        signs = {
-          add = ' ▎',
-          change = ' ▎',
-          delete = ' ',
-        },
-      },
-    },
-    config = function(_, opts)
-      require('mini.diff').setup(opts)
-
-      vim.keymap.set('n', '<leader>go', function() require('mini.diff').toggle_overlay(0) end, { desc = 'Toggle mini.diff overlay' })
-
-      Snacks.toggle({
-        name = 'Mini Diff Signs',
-        get = function() return vim.g.minidiff_disable ~= true end,
-        set = function(state)
-          vim.g.minidiff_disable = not state
-          if state then
-            require('mini.diff').enable(0)
-          else
-            require('mini.diff').disable(0)
-          end
-          vim.defer_fn(function() vim.cmd [[redraw!]] end, 200)
-        end,
-      }):map '<leader>uG'
-    end,
-  },
+  -- {
+  --   'nvim-mini/mini.diff',
+  --   event = { 'BufReadPre', 'BufNewFile' },
+  --   opts = {
+  --     view = {
+  --       style = 'sign',
+  --       signs = {
+  --         add = ' ▎',
+  --         change = ' ▎',
+  --         delete = ' ',
+  --       },
+  --     },
+  --   },
+  --   config = function(_, opts)
+  --     require('mini.diff').setup(opts)
+  --
+  --     vim.keymap.set('n', '<leader>go', function() require('mini.diff').toggle_overlay(0) end, { desc = 'Toggle mini.diff overlay' })
+  --
+  --     Snacks.toggle({
+  --       name = 'Mini Diff Signs',
+  --       get = function() return vim.g.minidiff_disable ~= true end,
+  --       set = function(state)
+  --         vim.g.minidiff_disable = not state
+  --         if state then
+  --           require('mini.diff').enable(0)
+  --         else
+  --           require('mini.diff').disable(0)
+  --         end
+  --         vim.defer_fn(function() vim.cmd [[redraw!]] end, 200)
+  --       end,
+  --     }):map '<leader>uG'
+  --   end,
+  -- },
 
   -- ==========================================================
   -- [[ mini.sessions ]] — replaces persistence.nvim
