@@ -1,16 +1,14 @@
 -- ============================================================
--- SECTION 0: BOOTSTRAP LAZIER.NVIM
--- Clone lazier.nvim on first run and add it to the runtimepath.
--- lazier.nvim wraps lazy.nvim (specs/lockfile/UI stay the same)
--- and bootstraps lazy.nvim itself on the usual data path.
+-- SECTION 0: BOOTSTRAP LAZY.NVIM
+-- Clone lazy.nvim on first run and add it to the runtimepath.
 -- ============================================================
-local lazierpath = vim.fn.stdpath 'data' .. '/lazier/lazier.nvim'
-if not (vim.uv or vim.loop).fs_stat(lazierpath) then
-  local lazyrepo = 'https://github.com/jake-stewart/lazier.nvim.git'
-  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable-v2', lazyrepo, lazierpath }
+local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
+  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
   if vim.v.shell_error ~= 0 then
     vim.api.nvim_echo({
-      { 'Failed to clone lazier.nvim:\n', 'ErrorMsg' },
+      { 'Failed to clone lazy.nvim:\n', 'ErrorMsg' },
       { out, 'WarningMsg' },
       { '\nPress any key to exit...', 'MoreMsg' },
     }, true, {})
@@ -18,31 +16,39 @@ if not (vim.uv or vim.loop).fs_stat(lazierpath) then
     os.exit(1)
   end
 end
-vim.opt.rtp:prepend(lazierpath)
+vim.opt.rtp:prepend(lazypath)
 
 -- ============================================================
--- SECTION 1: CONFIG
--- options + autocmds run before the first frame (lazier.before);
--- keymaps run after it (lazier.after).
+-- SECTION 1: OPTIONS
+-- Core Neovim settings, leaders, options
 -- ============================================================
+require 'config.options'
 
 -- ============================================================
--- SECTION 2: PLUGINS
--- lazier.nvim imports every `lua/plugins/*.lua` module as a spec
+-- SECTION 2: KEYMAPS
+-- basic keymaps, moved to lua/config/keymaps.lua
+-- ============================================================
+require 'config.keymaps'
+
+-- ============================================================
+-- SECTION 3: AUTOCMDS
+-- Highlight on yank, CodeCompanion <-> fidget hooks
+-- ============================================================
+require 'config.autocmd'
+
+-- ============================================================
+-- SECTION 4: PLUGINS
+-- lazy.nvim imports every `lua/plugins/*.lua` module as a spec
 -- and lazy-loads plugins via the `event`/`keys`/`ft`/`cmd`
 -- handlers.
 -- ============================================================
-require('lazier').setup('plugins', {
-  lazier = {
-    -- specs stay fully explicit: no keymap/autocmd codegen from profile runs
-    generate_lazy_mappings = false,
-    before = function()
-      require 'config.options'
-      require 'config.autocmd'
-    end,
-    after = function() require 'config.keymaps' end,
+require('lazy').setup {
+  spec = {
+
+    { 'bwpge/lazy-events.nvim', import = 'lazy-events.import', lazy = false },
+    { import = 'plugins' },
   },
-  install = { colorscheme = { 'habamax' } },
+  install = { colorscheme = {  'habamax' } },
   checker = { enabled = false },
   change_detection = { notify = false },
   performance = {
@@ -57,7 +63,7 @@ require('lazier').setup('plugins', {
       },
     },
   },
-})
+}
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

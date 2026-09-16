@@ -6,13 +6,13 @@ local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
 
 return {
   'obsidian-nvim/obsidian.nvim',
-  ft = 'markdown',
+  event = 'LazyProject:obsidian',
   keys = {
-    { '<leader>on', '<cmd>ObsidianNew<cr>', desc = 'Nova nota' },
-    { '<leader>of', '<cmd>ObsidianFollowLink<cr>', desc = 'Seguir link' },
-    { '<leader>os', '<cmd>ObsidianSearch<cr>', desc = 'Pesquisar notas' },
-    { '<leader>ot', '<cmd>ObsidianToday<cr>', desc = 'Nota de hoje' },
-    { '<leader>oy', '<cmd>ObsidianYesterday<cr>', desc = 'Nota de ontem' },
+    { 'n', '<leader>on', '<cmd>ObsidianNew<cr>', desc = 'Nova nota' },
+    { 'n', '<leader>of', '<cmd>ObsidianFollowLink<cr>', desc = 'Seguir link' },
+    { 'n', '<leader>os', '<cmd>ObsidianSearch<cr>', desc = 'Pesquisar notas' },
+    { 'n', '<leader>ot', '<cmd>ObsidianToday<cr>', desc = 'Nota de hoje' },
+    { 'n', '<leader>oy', '<cmd>ObsidianYesterday<cr>', desc = 'Nota de ontem' },
   },
   dependencies = { 'nvim-lua/plenary.nvim' },
   -- enabled = is_vault,
