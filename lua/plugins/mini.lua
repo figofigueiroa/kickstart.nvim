@@ -93,6 +93,7 @@ return {
   -- [[ mini.icons ]] — eager, so the nvim-web-devicons mock is
   -- registered before any plugin tries to use it.
   -- ==========================================================
+  { 'nvim-mini/mini.extra', version = false, lazy = true },
   {
     'nvim-mini/mini.icons',
     -- lazy = false,
@@ -329,6 +330,7 @@ return {
     event = { 'BufReadPre', 'BufNewFile' },
     opts = function()
       local ai = require 'mini.ai'
+      local mx = require 'mini.extra'
       return {
         n_lines = 500,
         custom_textobjects = {
@@ -336,6 +338,11 @@ return {
             a = { '@block.outer', '@conditional.outer', '@loop.outer' },
             i = { '@block.inner', '@conditional.inner', '@loop.inner' },
           },
+          B = mx.gen_ai_spec.buffer(),
+          L = mx.gen_ai_spec.line(),
+          E = mx.gen_ai_spec.diagnostic("ERROR"),
+          W =  mx.gen_ai_spec.diagnostic("WARN"),
+          I = mx.gen_ai_spec.indent(),
           f = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function
           c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' }, -- class
           t = { '<([%p%w]-)%f[^<%w][^<>]->.-</%1>', '^<.->().*()</[^/]->$' }, -- tags

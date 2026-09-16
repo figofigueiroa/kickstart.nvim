@@ -6,13 +6,43 @@ local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
 
 return {
   'obsidian-nvim/obsidian.nvim',
-  ft = 'markdown',
+  ft = "markdown",
+  lazy = true,
+  cmd = "Obsidian",
+  event = {
+    -- só dispara quando editar um .md dentro de um vault
+    "BufReadPre *.md",
+    "BufNewFile *.md",
+  },
+  cond = function()
+    local vault = vim.fn.getcwd() .. "/.obsidian"
+    return vim.fn.isdirectory(vault) == 1
+  end,
   keys = {
-    { '<leader>on', '<cmd>ObsidianNew<cr>', desc = 'Nova nota' },
-    { '<leader>of', '<cmd>ObsidianFollowLink<cr>', desc = 'Seguir link' },
-    { '<leader>os', '<cmd>ObsidianSearch<cr>', desc = 'Pesquisar notas' },
-    { '<leader>ot', '<cmd>ObsidianToday<cr>', desc = 'Nota de hoje' },
-    { '<leader>oy', '<cmd>ObsidianYesterday<cr>', desc = 'Nota de ontem' },
+    -- grupo principal
+    { "<leader>o", group = "obsidian" },
+
+    -- navegação / busca
+    { "<leader>of", "<cmd>Obsidian follow_link<cr>", desc = "follow link" },
+    { "<leader>ob", "<cmd>Obsidian backlinks<cr>", desc = "backlinks" },
+    { "<leader>oo", "<cmd>Obsidian open<cr>", desc = "open in app" },
+
+    -- notas
+    { "<leader>on", "<cmd>Obsidian new<cr>", desc = "new note" },
+    { "<leader>oN", "<cmd>Obsidian new_from_template<cr>", desc = "new from template" },
+    { "<leader>oln", "<cmd>Obsidian link_new <cr>", desc = "link to new note", mode = "v" },
+
+    -- busca
+    { "<leader>os", "<cmd>Obsidian search<cr>", desc = "search" },
+    { "<leader>oq", "<cmd>Obsidian quick_switch<cr>", desc = "quick switch" },
+
+    -- tags / links
+    { "<leader>ot", "<cmd>Obsidian tags<cr>", desc = "tags" },
+    { "<leader>ols", "<cmd>Obsidian links<cr>", desc = "links" },
+
+    -- visual selection commands
+    { "<leader>oen", "<cmd>Obsidiand extract_note", desc = "extract note", mode = "v" },
+    { "<leader>oL", "<cmd>Obsidian link<cr>", desc = "link to note", mode = "v" },
   },
   dependencies = { 'nvim-lua/plenary.nvim' },
   -- enabled = is_vault,
