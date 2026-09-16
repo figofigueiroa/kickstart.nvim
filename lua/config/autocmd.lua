@@ -226,6 +226,8 @@ end
 -- this file, so a plain ColorScheme autocmd never fires at startup — apply
 -- once now and keep the autocmd for later `:colorscheme habamax` runs.
 local function fix_habamax_hl()
+
+  vim.api.nvim_set_hl(0, 'Normal', {bg = 'none', ctermbg = 'none'})
   -- Floats use the editor background instead of Pmenu's #3a3a3a
   vim.api.nvim_set_hl(0, 'NormalFloat', { link = 'Normal' })
   -- Thin border line (Comment gray) with no background of its own
