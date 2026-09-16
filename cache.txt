@@ -1,0 +1,1 @@
+{"bundle_plugins":false,"version":801,"tally":32,"colorscheme":"habamax","non_lazy_plugins":[{"main":"snacks","rtp":"C:/Desenvolvimento/.local/share/nvim-data/lazy/snacks.nvim","name":"snacks.nvim","path":"plugins.snacks","priority":1000},{"main":"fidget","rtp":"C:/Desenvolvimento/.local/share/nvim-data/lazy/fidget.nvim","name":"fidget.nvim","path":"plugins.fidget"}]}
