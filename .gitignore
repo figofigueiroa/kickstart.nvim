@@ -9,3 +9,4 @@ spell/
 # lazy-lock.json IS tracked - see :help lazy-lockfile
 
 .DS_Store
+.openconde/

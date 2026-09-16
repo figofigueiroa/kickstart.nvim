@@ -53,20 +53,8 @@ map('n', '<leader>T', '<cmd>terminal<CR>', { desc = 'Terminal (cwd)' })
 -- or just use <C-\><C-n> to exit terminal mode
 map('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
--- TIP: Disable arrow keys in normal mode
--- map('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
--- map('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
--- map('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
--- map('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
-
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> to switch between windows
 --
 -- --  See `:help wincmd` for a list of all window commands
--- map('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
--- map('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
--- map('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
--- map('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 -- Resize window using <ctrl> arrow keys
 map('n', '<C-Up>', '<cmd>resize +2<cr>', { desc = 'Increase Window Height' })
 map('n', '<C-Down>', '<cmd>resize -2<cr>', { desc = 'Decrease Window Height' })
@@ -206,3 +194,4 @@ map({ 'n', 't' }, '<c-/>', function() Snacks.terminal.focus(nil, { cwd = project
 -- floating terminal
 -- map("n", "<leader>fT", function() Snacks.terminal() end, { desc = "Terminal (cwd)" })
 map({ 'n', 't' }, '<c-_>', function() Snacks.terminal.focus(nil, { cwd = project_root() }) end, { desc = 'which_key_ignore' })
+map("n", "<leader>ll", "<cmd>Lazy<cr>", { desc = "Lazy" })
