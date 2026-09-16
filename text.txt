@@ -1,0 +1,31 @@
+Error in C:/Desenvolvimento/.config/nvim/init.lua:
+E5113: Lua chunk: .../share/nvim-data/lazy/lazy.nvim/lua/lazy/core/plugin.lua:184: attempt to index field 'loaded' (a nil value)
+stack traceback:
+        .../share/nvim-data/lazy/lazy.nvim/lua/lazy/core/plugin.lua:184: in function 'import'
+        .../share/nvim-data/lazy/lazy.nvim/lua/lazy/core/plugin.lua:111: in function 'normalize'
+        .../share/nvim-data/lazy/lazy.nvim/lua/lazy/core/plugin.lua:99: in function 'normalize'
+        .../share/nvim-data/lazy/lazy.nvim/lua/lazy/core/plugin.lua:53: in function 'parse'
+        .../share/nvim-data/lazy/lazy.nvim/lua/lazy/core/plugin.lua:335: in function 'load'
+        .../share/nvim-data/lazy/lazy.nvim/lua/lazy/core/loader.lua:92: in function 'install_missing'
+        .../share/nvim-data/lazy/lazy.nvim/lua/lazy/core/loader.lua:44: in function 'setup'
+        .../.local/share/nvim-data/lazy/lazy.nvim/lua/lazy/init.lua:102: in function 'setup'
+        ...nvim-data/lazier/lazier.nvim/lua/lazier/compile_user.lua:92: in function 'compile_user'
+        ...lvimento/.local/share/nvim-data\lazier\lazier_bundle.lua:171: in function <...lvimento/.local/share/nvim-data\lazier\lazier_bundle.lua:122>
+        ...lvimento/.local/share/nvim-data\lazier\lazier_bundle.lua:21: in function 'setup'
+        C:/Desenvolvimento/.config/nvim/init.lua:35: in main chunk
+
+E5108: Lua: [string "luaeval()"]:1: attempt to index field 'loaded' (a nil value)
+stack traceback:
+        [string "luaeval()"]:1: in main chunk
+
+Error in C:/Desenvolvimento/.config/nvim/init.lua:
+E5113: Lua chunk: ...vim-data/lazier/lazier.nvim/lua/lazier/change_detect.lua:4: attempt to compare nil with number
+stack traceback:
+        ...vim-data/lazier/lazier.nvim/lua/lazier/change_detect.lua:4: in function 'modified_since'
+        ...vim-data/lazier/lazier.nvim/lua/lazier/change_detect.lua:16: in function 'check_modified_tree'
+        ...vim-data/lazier/lazier.nvim/lua/lazier/change_detect.lua:21: in function 'check_modified_tree'
+        ...vim-data/lazier/lazier.nvim/lua/lazier/change_detect.lua:34: in function <...vim-data/lazier/lazier.nvim/lua/lazier/change_detect.lua:29>
+        ...lvimento/.local/share/nvim-data\lazier\lazier_bundle.lua:104: in function 'check_cache'
+        ...lvimento/.local/share/nvim-data\lazier\lazier_bundle.lua:165: in function <...lvimento/.local/share/nvim-data\lazier\lazier_bundle.lua:122>
+        ...lvimento/.local/share/nvim-data\lazier\lazier_bundle.lua:21: in function 'setup'
+        C:/Desenvolvimento/.config/nvim/init.lua:35: in main chunk
