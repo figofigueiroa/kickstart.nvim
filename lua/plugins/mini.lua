@@ -333,13 +333,19 @@ return {
       local mx = require 'mini.extra'
       return {
         n_lines = 500,
+        mappings = {
+            around_next = 'aN',  -- ou qualquer outra combinação livre
+            inside_next = 'iN',
+            around_last = 'aL',
+            inside_last = 'iL',
+          },
         custom_textobjects = {
           o = ai.gen_spec.treesitter { -- code block
             a = { '@block.outer', '@conditional.outer', '@loop.outer' },
             i = { '@block.inner', '@conditional.inner', '@loop.inner' },
           },
-          B = mx.gen_ai_spec.buffer(),
-          L = mx.gen_ai_spec.line(),
+          -- B = mx.gen_ai_spec.buffer(),
+          -- L = mx.gen_ai_spec.line(),
           E = mx.gen_ai_spec.diagnostic("ERROR"),
           W =  mx.gen_ai_spec.diagnostic("WARN"),
           I = mx.gen_ai_spec.indent(),
