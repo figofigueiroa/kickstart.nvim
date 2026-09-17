@@ -163,8 +163,9 @@ vim.api.nvim_create_autocmd('User', {
 })
 
 vim.api.nvim_create_autocmd('FileType', {
+  group = augroup 'directory_bufhidden',
   pattern = 'directory',
-  callback = function() vim.bo.bufhidden = 'delete' end,
+  callback = function(event) vim.bo[event.buf].bufhidden = 'delete' end,
 })
 
 -- [[ Obsidian: keymaps ao entrar em nota ]]
@@ -181,67 +182,66 @@ local function wk_obsidian_group()
   return true
 end
 
--- vim.api.nvim_create_autocmd('User', {
---   desc = 'Keymaps do Obsidian para o buffer de nota',
---   pattern = 'ObsidianNoteEnter',
---   group = vim.api.nvim_create_augroup('user-obsidian-note', { clear = true }),
---   callback = function()
---     local function map(lhs, rhs, desc) vim.keymap.set('n', lhs, rhs, { buffer = true, desc = desc }) end
---
---     -- map('<leader>oo', '<cmd>Obsidian open<cr>', 'Open in Obsidian app')
---     map({ 'n', 'x' }, '<leader>on', '<cmd>Obsidian new<cr>', 'New note')
---     map({ 'n', 'x' }, '<leader>oq', '<cmd>Obsidian quick_switch<cr>', 'Quick switch')
---     map({ 'n', 'x' }, '<leader>os', '<cmd>Obsidian search<cr>', 'Search in vault')
---     map({ 'n', 'x' }, '<leader>of', '<cmd>Obsidian follow_link<cr>', 'Follow link')
---     map('<leader>ob', '<cmd>Obsidian backlinks<cr>', 'Backlinks')
---     map('<leader>ol', '<cmd>Obsidian links<cr>', 'Links of the note')
---     map('<leader>ot', '<cmd>Obsidian today<cr>', "Today's daily note")
---     map('<leader>oc', '<cmd>Obsidian toggle_checkbox<cr>', 'Toggle checkbox')
---     map('<leader>oT', '<cmd>Obsidian template<cr>', 'Insert template')
---     map('<leader>or', '<cmd>Obsidian rename<cr>', 'Rename note')
---     -- map('<leader>op', '<cmd>Obsidian paste_img<cr>', 'Paste image')
---
---     if not wk_obsidian_group() then
---       -- which-key (VeryLazy) pode carregar depois do primeiro NoteEnter:
---       -- registrar quando chegar, se ainda estivermos numa nota.
---       vim.api.nvim_create_autocmd('User', {
---         pattern = 'VeryLazy',
---         once = true,
---         group = vim.api.nvim_create_augroup('user-obsidian-wk', { clear = true }),
---         callback = function()
---           if vim.b.obsidian_buffer then wk_obsidian_group() end
---         end,
---       })
---     end
---   end,
--- })
--- Fix floating windows and separators for habamax.
--- habamax links `FloatBorder` -> `WinSeparator` -> `VertSplit`, which sets BOTH
--- fg and bg to #767676: the border glyphs become invisible against their own
--- background and every float (snacks, which-key, blink, ...) gets a solid gray
--- slab around the darker `NormalFloat` (-> Pmenu #3a3a3a). Same for the lines
--- between splits: the `VertSplit` background fills the whole separator cell
--- instead of letting the thin `│`/`─` glyphs (from 'fillchars') show through.
--- NOTE: the colorscheme is sourced in `config/options.lua`, which runs BEFORE
--- this file, so a plain ColorScheme autocmd never fires at startup — apply
--- once now and keep the autocmd for later `:colorscheme habamax` runs.
-local function fix_habamax_hl()
-  vim.api.nvim_set_hl(0, 'Normal', { bg = 'none', ctermbg = 'none' })
-  -- Floats use the editor background instead of Pmenu's #3a3a3a
+-- Grupos de keyword do treesitter + grupos legados (syntax regex)
+local keyword_groups = {
+  '@keyword',
+  '@keyword.coroutine',
+  '@keyword.function',
+  '@keyword.operator',
+  '@keyword.import',
+  '@keyword.type',
+  '@keyword.modifier',
+  '@keyword.repeat',
+  '@keyword.return',
+  '@keyword.debug',
+  '@keyword.exception',
+  '@keyword.conditional',
+  '@keyword.conditional.ternary',
+  '@keyword.directive',
+  '@keyword.directive.define',
+  'Keyword',
+  'Statement',
+  'Conditional',
+  'Repeat',
+  'Exception',
+  'Include',
+}
+
+-- Definição efetiva do grupo, subindo na hierarquia se não existir
+-- (@keyword.return -> @keyword), como o fallback do treesitter faz
+local function resolve_hl(name)
+  while name do
+    local hl = vim.api.nvim_get_hl(0, { name = name, link = false, create = false })
+    if next(hl) then return hl end
+    name = name:match '^(.*)%.[^.]+$'
+  end
+  return {}
+end
+
+-- nvim_set_hl SUBSTITUI o grupo inteiro; isto mescla só o que você passar
+local function extend_hl(name, attrs) vim.api.nvim_set_hl(0, name, vim.tbl_deep_extend('force', resolve_hl(name), attrs)) end
+
+local function habamax_overrides()
+  -- Fundo transparente, preservando o fg do habamax
+  extend_hl('Normal', { bg = 'NONE', ctermbg = 'NONE' })
   vim.api.nvim_set_hl(0, 'NormalFloat', { link = 'Normal' })
-  -- Thin border line (Comment gray) with no background of its own
   vim.api.nvim_set_hl(0, 'FloatBorder', { fg = '#767676', bg = 'NONE' })
-  -- Thin separator between splits (`WinSeparator` links to `VertSplit`)
   vim.api.nvim_set_hl(0, 'VertSplit', { fg = '#767676', bg = 'NONE' })
 
   vim.api.nvim_set_hl(0, 'TabLineSel', { link = 'PmenuSel' })
   vim.api.nvim_set_hl(0, 'TabLine', { link = 'StatusLineNC' })
   vim.api.nvim_set_hl(0, 'TabLineFill', { link = 'StatusLineNC' })
+
+  -- Keywords em negrito (gui e cterm)
+  for _, group in ipairs(keyword_groups) do
+    extend_hl(group, { bold = true, cterm = { bold = true } })
+  end
 end
-if vim.g.colors_name == 'habamax' then fix_habamax_hl() end
+
+if vim.g.colors_name == 'habamax' then habamax_overrides() end
 
 vim.api.nvim_create_autocmd('ColorScheme', {
   pattern = 'habamax',
-  group = augroup 'habamax_floats',
-  callback = fix_habamax_hl,
+  group = augroup 'habamax_overrides',
+  callback = habamax_overrides,
 })
