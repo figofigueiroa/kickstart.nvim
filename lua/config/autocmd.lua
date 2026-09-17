@@ -233,6 +233,10 @@ local function fix_habamax_hl()
   vim.api.nvim_set_hl(0, 'FloatBorder', { fg = '#767676', bg = 'NONE' })
   -- Thin separator between splits (`WinSeparator` links to `VertSplit`)
   vim.api.nvim_set_hl(0, 'VertSplit', { fg = '#767676', bg = 'NONE' })
+
+  vim.api.nvim_set_hl(0, 'TabLineSel', { link = 'PmenuSel' })
+  vim.api.nvim_set_hl(0, 'TabLine', { link = 'StatusLineNC' })
+  vim.api.nvim_set_hl(0, 'TabLineFill', { link = 'StatusLineNC' })
 end
 if vim.g.colors_name == 'habamax' then fix_habamax_hl() end
 

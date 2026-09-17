@@ -21,6 +21,7 @@ return {
       { '<leader>c', group = '[C]ode Actions', mode = { 'n', 'v' } },
       { '<leader>co', desc = '[C]ode [O]rganize Imports' },
       { '<leader>R', group = '[R]est', mode = { 'n', 'v' } },
+      { '<leader>l', group = '[L]azy Tools', mode = { 'n' } },
       { '<leader>r', group = '[R]efactor', mode = { 'n', 'v' } },
       { '<leader>g', group = '[G]it', mode = { 'n', 'v' } },
       { '<leader>w', group = '[W]indow Control', mode = { 'n', 'v' } },

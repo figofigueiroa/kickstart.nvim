@@ -10,6 +10,10 @@
 --  MiniStatusline.section_diff was already reading minidiff_summary anyway).
 --
 --  mini.sessions is the ONLY owner of sessions (persistence.nvim was cut).
+-- ==========================================================
+-- Caminho do arquivo a partir da raiz do projeto:
+-- /home/figo/code/myapp/src/api/handler.go -> myapp/src/api/handler.go
+-- ==========================================================
 
 local function is_loaded(name)
   local plugin = require('lazy.core.config').plugins[name]
@@ -74,8 +78,8 @@ local function ai_whichkey(opts)
     around_last = 'al',
     inside_last = 'il',
   }, opts.mappings or {})
-  mappings.goto_left = nil
-  mappings.goto_right = nil
+  mappings.goto_left = 'g['
+  mappings.goto_right = 'g]'
 
   for name, prefix in pairs(mappings) do
     name = name:gsub('^around_', ''):gsub('^inside_', '')
@@ -134,6 +138,55 @@ return {
         if not (vim.g.ai_processing or vim.g.codecompanion_processing) then return '' end
         return (vim.g.have_nerd_font and '󱙺 ' or '[AI] ') .. 'thinking'
       end
+
+local root_markers = {
+  ['.git'] = true,
+  ['go.mod'] = true,
+  ['package.json'] = true,
+  ['pyproject.toml'] = true,
+}
+
+local function is_root_marker(name)
+  -- Soluções .NET têm nome variável, então testamos a extensão
+  return root_markers[name] or name:match '%.sln$' ~= nil
+end
+
+-- Cache por diretório: a statusline redesenha a cada movimento,
+-- e subir a árvore de pastas em todo redraw seria desperdício.
+-- `false` = "procurei e não achei"; `nil` = "ainda não procurei".
+local root_cache = {}
+
+local function find_root(path)
+  local dir = vim.fs.dirname(path)
+  if root_cache[dir] == nil then root_cache[dir] = vim.fs.root(path, is_root_marker) or false end
+  return root_cache[dir] or nil
+end
+
+statusline.section_project_filename = function(args)
+  local buf = vim.api.nvim_get_current_buf()
+  local path = vim.api.nvim_buf_get_name(buf)
+
+  -- Terminal, help, quickfix, buffers sem nome: comportamento padrão do mini
+  if vim.bo[buf].buftype ~= '' or path == '' then return MiniStatusline.section_filename(args) end
+
+  -- Janela estreita: só o nome do arquivo
+  if MiniStatusline.is_truncated(args.trunc_width) then return '%t%m%r' end
+
+  path = vim.fs.normalize(path)
+  local root = find_root(path)
+
+  local display
+  if root and path:sub(1, #root + 1) == root .. '/' then
+    display = vim.fs.basename(root) .. '/' .. path:sub(#root + 2)
+  else
+    -- Fora de projeto: relativo ao cwd, ou com ~ no lugar do home
+    display = vim.fn.fnamemodify(path, ':~:.')
+  end
+
+  -- '%' é especial na statusline; escapar para '%%'
+  display = display:gsub('%%', '%%%%')
+  return display .. '%m%r'
+end
 
       -- ==========================================================
       -- Mode colors: insert -> roxo pastel, visual -> amarelo,
@@ -261,7 +314,7 @@ return {
         local diff = MiniStatusline.section_diff { trunc_width = 75 }
         local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
         local lsp = MiniStatusline.section_lsp { trunc_width = 75 }
-        local filename = MiniStatusline.section_filename { trunc_width = 140 }
+        local filename = MiniStatusline.section_project_filename { trunc_width = 140 }
         local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
         local location = MiniStatusline.section_location { trunc_width = 75 }
         local search = MiniStatusline.section_searchcount { trunc_width = 75 }
@@ -276,6 +329,12 @@ return {
           { hl = 'DiagnosticWarn', strings = { ai } },
           { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
           { hl = mode_hl, strings = { search, location } },
+        }
+      end
+
+      statusline.config.content.inactive = function()
+        return combine {
+          { hl = 'MiniStatuslineFilename', strings = { MiniStatusline.section_project_filename { trunc_width = 140 } } },
         }
       end
     end,
@@ -295,36 +354,6 @@ return {
   -- Examples:
   --  - va)  - [V]isually select [A]round [)]paren
   --  - yiiq - [Y]ank [I]nside [I]+1 [Q]uote
-  --
-  -- FIX: mini.ai and mini.surround used to load on `InsertEnter`, but they are
-  -- normal-mode operators. Opening a file and immediately typing `va)` or
-  -- `gsaiw)` did nothing until you had entered insert mode at least once.
-  -- {
-  --   'nvim-mini/mini.ai',
-  --   event = 'VeryLazy',
-  --   opts = {
-  --     -- NOTE: Avoid conflicts with the built-in incremental selection mappings
-  --     -- on Neovim >= 0.12 (see `:help treesitter-incremental-selection`)
-  --     mappings = {
-  --       -- Main textobject prefixes
-  --       around = 'a',
-  --       inside = 'i',
-  --
-  --       -- Next/last variants
-  --       -- NOTE: This (deliberately) overrides Neovim>=0.12 built-in incremental
-  --       -- selection mappings. See `:h MiniAi-default-an-in` for more details.
-  --       around_next = 'an',
-  --       inside_next = 'in',
-  --       around_last = 'al',
-  --       inside_last = 'il',
-  --
-  --       -- Move cursor to corresponding edge of `a` textobject
-  --       goto_left = 'g[',
-  --       goto_right = 'g]',
-  --     },
-  --     n_lines = 500,
-  --   },
-  -- },
   {
     'nvim-mini/mini.ai',
     event = { 'BufReadPre', 'BufNewFile' },
@@ -334,11 +363,11 @@ return {
       return {
         n_lines = 500,
         mappings = {
-            around_next = 'aN',  -- ou qualquer outra combinação livre
-            inside_next = 'iN',
-            around_last = 'aL',
-            inside_last = 'iL',
-          },
+          around_next = 'aN', -- ou qualquer outra combinação livre
+          inside_next = 'iN',
+          around_last = 'aL',
+          inside_last = 'iL',
+        },
         custom_textobjects = {
           o = ai.gen_spec.treesitter { -- code block
             a = { '@block.outer', '@conditional.outer', '@loop.outer' },
@@ -346,11 +375,13 @@ return {
           },
           -- B = mx.gen_ai_spec.buffer(),
           -- L = mx.gen_ai_spec.line(),
-          E = mx.gen_ai_spec.diagnostic("ERROR"),
-          W =  mx.gen_ai_spec.diagnostic("WARN"),
+          E = mx.gen_ai_spec.diagnostic 'ERROR',
+          W = mx.gen_ai_spec.diagnostic 'WARN',
           I = mx.gen_ai_spec.indent(),
           f = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function
           c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' }, -- class
+
+          ['='] = ai.gen_spec.treesitter { i = '@assignment.rhs', a = '@assignment.lhs' }, -- assignment
           t = { '<([%p%w]-)%f[^<%w][^<>]->.-</%1>', '^<.->().*()</[^/]->$' }, -- tags
           d = { '%f[%d]%d+' }, -- digits
           e = { -- Word with case
@@ -504,11 +535,5 @@ return {
     event = 'InsertEnter',
     opts = {},
   },
-
-  -- REMOVED: mini.animate
-  --   The only module in the config that provided zero capability — pure
-  --   cosmetics, and the most expensive thing in the redraw path. It was also
-  --   already disabled under Neovide. If you miss animated scrolling, snacks is
-  --   already installed: flip `scroll = { enabled = true }` in snacks.lua and
-  --   use the existing `<leader>uS` toggle.
+  -- { 'nvim-mini/mini.tabline', version = false, event = { 'BufReadPre', 'BufNewFile' }, opts = {} },
 }

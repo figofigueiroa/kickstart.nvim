@@ -4,7 +4,7 @@
 -- ============================================================
 vim.g.start_time = vim.fn.reltime()
 
-vim.cmd.colorscheme('habamax')
+vim.cmd.colorscheme 'habamax'
 
 do
   -- Enable faster startup by caching compiled Lua modules
@@ -16,6 +16,7 @@ do
   vim.g.mapleader = ' '
   vim.g.maplocalleader = '\\'
   vim.g.loaded_netrw = 1
+  vim.o.termguicolors = true
   vim.g.loaded_netrwPlugin = 1
   -- Set to true if you have a Nerd Font installed and selected in the terminal
   vim.g.have_nerd_font = true
@@ -38,7 +39,6 @@ do
   vim.o.mouse = 'a'
   vim.o.winborder = 'double'
 
-  
   -- Don't show the mode, since it's already in the status line
   vim.o.showmode = false
 

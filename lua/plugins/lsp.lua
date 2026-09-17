@@ -1,3 +1,4 @@
+-- local jdtls = require "plugins.nvim-jdtls"
 -- [[ LSP Configuration ]]
 --
 -- This file is the SINGLE owner of every LSP keymap. snacks.lua used to
@@ -314,7 +315,7 @@ return {
       -- Consumed by ftplugin/java.lua, which `require`s it at FileType time.
       -- Being a dependency (loaded on BufReadPre, before any FileType) keeps
       -- that require safe.
-      'mfussenegger/nvim-jdtls',
+      -- 'mfussenegger/nvim-jdtls',
     },
     config = function()
       for name, server in pairs(servers) do
