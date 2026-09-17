@@ -168,19 +168,19 @@ vim.api.nvim_create_autocmd('FileType', {
   callback = function(event) vim.bo[event.buf].bufhidden = 'delete' end,
 })
 
--- [[ Obsidian: keymaps ao entrar em nota ]]
--- O obsidian.nvim emite `User ObsidianNoteEnter` ao entrar num buffer de nota
--- (setup ativo, cwd no vault; o `event = 'BufEnter'` do spec cobre também o
--- buffer inicial). O grupo `<leader>o` é `[O]pencode` no spec global do
--- which-key; em notas ele é sobrescrito buffer-local para `[O]bsidian`.
-local function wk_obsidian_group()
-  if not package.loaded['which-key'] then return false end
-  -- `buffer` é campo do item do spec (não do opts) e resolve para o buffer
-  -- atual no parse; assim a entrada vale só para notas e sobrescreve o
-  -- `[O]pencode` global.
-  require('which-key').add { { '<leader>o', group = '[O]bsidian', mode = 'n', buffer = true } }
-  return true
-end
+-- -- [[ Obsidian: keymaps ao entrar em nota ]]
+-- -- O obsidian.nvim emite `User ObsidianNoteEnter` ao entrar num buffer de nota
+-- -- (setup ativo, cwd no vault; o `event = 'BufEnter'` do spec cobre também o
+-- -- buffer inicial). O grupo `<leader>o` é `[O]pencode` no spec global do
+-- -- which-key; em notas ele é sobrescrito buffer-local para `[O]bsidian`.
+-- local function wk_obsidian_group()
+--   if not package.loaded['which-key'] then return false end
+--   -- `buffer` é campo do item do spec (não do opts) e resolve para o buffer
+--   -- atual no parse; assim a entrada vale só para notas e sobrescreve o
+--   -- `[O]pencode` global.
+--   require('which-key').add { { '<leader>o', group = '[O]bsidian', mode = 'n', buffer = true } }
+--   return true
+-- end
 
 -- Grupos de keyword do treesitter + grupos legados (syntax regex)
 local keyword_groups = {
