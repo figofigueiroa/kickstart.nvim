@@ -137,6 +137,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 ---@type table<string, vim.lsp.Config>
 local servers = {
   pyright = {},
+  zls = {},
 
   ruff = {
     on_init = function(client)
@@ -260,7 +261,7 @@ local ensure_installed = {
   'vtsls',
   'lua-language-server',
   'marksman',
-  'roslyn-language-server',
+  -- 'roslyn-language-server',
   'tinymist',
   'jdtls',
   'copilot-language-server',
@@ -268,7 +269,7 @@ local ensure_installed = {
   'stylua',
   'markdownlint-cli2',
   'biome',
-  'csharpier',
+  -- 'csharpier',
   'shfmt',
 }
 

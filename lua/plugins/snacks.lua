@@ -22,9 +22,6 @@ return {
           { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
           { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
           { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
-          -- FIX: was `section = 'session'`, which autodetects persistence.nvim.
-          -- persistence is gone, so call the mini.sessions loader exported by
-          -- plugins/mini.lua instead.
           { icon = ' ', key = 's', desc = 'Restore Session', action = function() LoadCwdSession() end },
           { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
         },
@@ -83,9 +80,6 @@ return {
     scope = { enabled = true },
     scroll = { enabled = false },
     statuscolumn = { enabled = false }, -- owned by mini.statuscolumn
-    -- FIX: this was `false` while lsp.lua mapped ]] / [[ / <a-n> / <a-p> to
-    -- Snacks.words.jump — four dead keymaps. Enabling it also let us delete the
-    -- hand-rolled documentHighlight autocmds from lsp.lua.
     words = { enabled = true },
   },
 
