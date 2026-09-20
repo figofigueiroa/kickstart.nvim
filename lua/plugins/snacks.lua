@@ -1,3 +1,49 @@
+local scooter_term = nil
+
+-- Called by scooter to open the selected file at the correct line from the scooter search list
+_G.EditLineFromScooter = function(file_path, line)
+  if scooter_term and scooter_term:buf_valid() then scooter_term:hide() end
+
+  local current_path = vim.fn.expand '%:p'
+  local target_path = vim.fn.fnamemodify(file_path, ':p')
+
+  if current_path ~= target_path then vim.cmd.edit(vim.fn.fnameescape(file_path)) end
+
+  vim.api.nvim_win_set_cursor(0, { line, 0 })
+end
+
+local function is_terminal_running(term)
+  if not term or not term:buf_valid() then return false end
+  local channel = vim.fn.getbufvar(term.buf, 'terminal_job_id')
+  return channel and vim.fn.jobwait({ channel }, 0)[1] == -1
+end
+
+local function open_scooter()
+  if is_terminal_running(scooter_term) then
+    scooter_term:toggle()
+  else
+    scooter_term = require('snacks').terminal.open('scooter', {
+      win = { position = 'float' },
+    })
+  end
+end
+
+local function open_scooter_with_text(search_text)
+  if scooter_term and scooter_term:buf_valid() then scooter_term:close() end
+
+  local escaped_text = vim.fn.shellescape(search_text:gsub('\r?\n', ' '))
+  scooter_term = require('snacks').terminal.open('scooter --fixed-strings --search-text ' .. escaped_text, {
+    win = { position = 'float' },
+  })
+end
+
+local function open_scooter_with_visual_selection()
+  local selection = vim.fn.getreg '"'
+  vim.cmd 'normal! "ay'
+  open_scooter_with_text(vim.fn.getreg 'a')
+  vim.fn.setreg('"', selection)
+end
+
 -- [[ snacks.nvim ]]
 -- Picker, dashboard, notifier, toggles, terminal, ... Eager (priority 1000)
 -- so `Snacks` and `vim.ui.select` are available from the start, like before.
@@ -95,7 +141,7 @@ return {
     { '<leader>sw', function() Snacks.picker.grep_word() end, mode = { 'n', 'v' }, desc = '[S]earch current [W]ord' },
     { '<leader>sg', function() Snacks.picker.grep() end, desc = '[S]earch by [G]rep' },
     { '<leader>sd', function() Snacks.picker.diagnostics() end, desc = '[S]earch [D]iagnostics' },
-    { '<leader>sr', function() Snacks.picker.resume() end, desc = '[S]earch [R]esume' },
+    { '<leader>sR', function() Snacks.picker.resume() end, desc = '[S]earch [R]esume' },
     { '<leader>s.', function() Snacks.picker.recent() end, desc = '[S]earch Recent Files ("." for repeat)' },
     { '<leader>sc', function() Snacks.picker.commands() end, desc = '[S]earch [C]ommands' },
     { '<leader>sp', function() Snacks.picker.projects() end, desc = 'Projects' },
@@ -104,6 +150,9 @@ return {
     { '<leader>sl', function() Snacks.picker.loclist() end, desc = '[S]earch [L]ocation List' },
     { '<leader>sq', function() Snacks.picker.qflist() end, desc = '[S]earch [Q]uickfix List' },
     { '<leader>s"', function() Snacks.picker.registers() end, desc = '[S]earch [R]egisters' },
+    { '<leader>sr', function() open_scooter() end, desc = '[S]earch [R]eplace Scooter', mode = { 'x', 'n' } },
+    { '<leader>sv', function() open_scooter_with_visual_selection() end, desc = '[S]earch Replace [V]isual Selection', mode = { 'x' } },
+    { '<leader>si', function() open_scooter_with_text(vim.fn.input 'Search text: ') end, desc = '[S]arch [T]ext in Scooter', mode = { 'x', 'n' } },
     -- NOTE: these two need todo-comments.nvim installed — the snacks source reads
     -- its keyword patterns. That is why todo-comments stays in the config.
     { '<leader>st', function() Snacks.picker.todo_comments() end, desc = '[S]earch [T]odo Comments' },
