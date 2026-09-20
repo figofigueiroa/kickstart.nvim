@@ -6,7 +6,7 @@ return {
   --    See the README about individual language/framework/plugin snippets:
   --    https://github.com/rafamadriz/friendly-snippets
 
-  { 'fang2hou/blink-copilot', event = 'InsertEnter' },
+  -- { 'fang2hou/blink-copilot', event = 'InsertEnter' },
 
   {
     'L3MON4D3/LuaSnip',
@@ -38,36 +38,25 @@ return {
     dependencies = {
       'L3MON4D3/LuaSnip',
       'rafamadriz/friendly-snippets',
-      'fang2hou/blink-copilot',
+      -- 'fang2hou/blink-copilot',
       'folke/lazydev.nvim',
     },
     opts = {
       keymap = {
-        -- 'default' (recommended) for mappings similar to built-in completions
-        --   <c-y> to accept ([y]es) the completion.
-        --    This will auto-import if your LSP supports it.
-        --    This will expand snippets if the LSP sent a snippet.
-        -- 'super-tab' for tab to accept
-        -- 'enter' for enter to accept
-        -- 'none' for no mappings
-        --
-        -- For an understanding of why the 'default' preset is recommended,
-        -- you will need to read `:help ins-completion`
-        --
-        -- No, but seriously. Please read `:help ins-completion`, it is really good!
-        --
-        -- All presets have the following mappings:
-        -- <tab>/<s-tab>: move to right/left of your snippet expansion
-        -- <c-space>: Open menu or open docs if already open
-        -- <c-n>/<c-p> or <up>/<down>: Select next/previous item
-        -- <c-e>: Hide menu
-        -- <c-k>: Toggle signature help
-        --
-        -- See `:help blink-cmp-config-keymap` for defining your own keymap
         preset = 'default',
 
-        -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-        --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
+        ['<Tab>'] = {
+          'snippet_forward', -- 1. placeholder do LuaSnip
+          function() -- 2. Next Edit Suggestion do sidekick
+            local ok, nes = pcall(require, 'sidekick.nes')
+            if ok and nes.have() and (nes.jump() or nes.apply()) then return true end
+          end,
+          function() -- 3. aceita a inline suggestion do copilot (= LazyVim ai_accept)
+            if vim.lsp.inline_completion.get() then return true end
+          end,
+          'fallback', -- 4. Tab normal
+        },
+        ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
       },
 
       appearance = {
@@ -83,17 +72,12 @@ return {
       },
 
       sources = {
-        default = { 'lazydev', 'lsp', 'path', 'snippets', 'copilot' },
+        default = { 'lazydev', 'lsp', 'path', 'snippets' },
         providers = {
           lazydev = {
             name = 'LazyDev',
             module = 'lazydev.integrations.blink',
             score_offset = 100, -- above lsp, for require("...") completions
-          },
-          copilot = {
-            name = 'copilot',
-            module = 'blink-copilot',
-            async = true,
           },
         },
       },

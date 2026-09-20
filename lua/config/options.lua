@@ -121,6 +121,10 @@ do
   -- See `:help 'confirm'`
   vim.o.confirm = true
 
+-- if the completion engine supports the AI source,
+-- use that instead of inline suggestions
+  vim.g.ai_cmp = false
+
   vim.opt.laststatus = 3
   vim.opt.linebreak = true
   vim.opt.pumblend = 10

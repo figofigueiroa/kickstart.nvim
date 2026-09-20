@@ -79,7 +79,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
       end
 
       map('<leader>co', only 'source.organizeImports', '[O]rganize Imports')
-      map('<leader>cm', only 'source.addMissingImports.ts', 'Add [M]issing Imports')
+      map('<leader>cM', only 'source.addMissingImports.ts', 'Add [M]issing Imports')
       map('<leader>cu', only 'source.removeUnused.ts', 'Remove [U]nused Imports')
       map('<leader>cd', only 'source.fixAll.ts', 'Fix All [D]iagnostics')
 
@@ -111,6 +111,12 @@ vim.api.nvim_create_autocmd('LspAttach', {
         end,
         'File [R]eferences'
       )
+    end
+    if client.name == 'copilot' and client:supports_method('textDocument/inlineCompletion', event.buf) then
+      vim.lsp.inline_completion.enable(true, { bufnr = event.buf })
+
+      map('<M-]>', function() vim.lsp.inline_completion.select { count = 1 } end, 'Next Copilot Suggestion', { 'i', 'n' })
+      map('<M-[>', function() vim.lsp.inline_completion.select { count = -1 } end, 'Prev Copilot Suggestion', { 'i', 'n' })
     end
 
     -- ========================================================
@@ -221,6 +227,27 @@ local servers = {
     settings = {
       telemetry = {
         telemetryLevel = 'off',
+      },
+    },
+    handlers = {
+      -- Equivalente ao handler do LazyVim: avisa se o login expirou/não existe
+      didChangeStatus = function(err, res, _ctx)
+        if err then return end
+        if res.status == 'Error' then vim.notify('Copilot: use `:LspCopilotSignIn` para fazer login', vim.log.levels.ERROR) end
+      end,
+    },
+    keys = {
+      {
+        '<M-]>',
+        function() vim.lsp.inline_completion.select { count = 1 } end,
+        desc = 'Next Copilot Suggestion',
+        mode = { 'i', 'n' },
+      },
+      {
+        '<M-[>',
+        function() vim.lsp.inline_completion.select { count = -1 } end,
+        desc = 'Prev Copilot Suggestion',
+        mode = { 'i', 'n' },
       },
     },
   },
