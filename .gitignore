@@ -12,4 +12,4 @@ spell/
 .openconde/
 /.opencode/skills/review-config
 AGENTS.md
-cache/
+.serena/
