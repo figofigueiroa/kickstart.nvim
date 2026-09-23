@@ -11,3 +11,5 @@ spell/
 .DS_Store
 .openconde/
 /.opencode/skills/review-config
+AGENTS.md
+cache/
