@@ -27,7 +27,7 @@ return {
       { '<leader>w', group = '[W]indow Control', mode = { 'n', 'v' } },
       { '<leader>gr', group = 'Lsp Actions', mode = { 'n', 'v' } },
       { '<leader>q', group = 'Session Manager', mode = { 'n', 'v' } },
-      { '<leader>o', group = '[O]pencode', mode = { 'n' } },
+      { '<leader>o', group = '[O]pencode/[O]bsidian', mode = { 'n' } },
     },
   },
 }
