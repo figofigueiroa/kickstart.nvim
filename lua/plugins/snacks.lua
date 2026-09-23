@@ -165,7 +165,6 @@ return {
     { '<leader>gb', function() Snacks.picker.git_log_line() end, desc = 'Git Blame Line' },
     { '<leader>gf', function() Snacks.picker.git_log_file() end, desc = 'Git Current File History' },
     { '<leader>gd', function() Snacks.picker.git_diff() end, desc = 'Git Diff (hunks)' },
-    { '<leader>gg', function() Snacks.lazygit() end, desc = 'Lazygit' },
 
     -- Fuzzily search lines in the current buffer
     { '<leader>/', function() Snacks.picker.lines() end, desc = '[/] Fuzzily search in current buffer' },

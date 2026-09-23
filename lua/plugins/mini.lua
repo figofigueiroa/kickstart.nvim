@@ -375,8 +375,8 @@ end
           },
           -- B = mx.gen_ai_spec.buffer(),
           -- L = mx.gen_ai_spec.line(),
-          E = mx.gen_ai_spec.diagnostic 'ERROR',
-          W = mx.gen_ai_spec.diagnostic 'WARN',
+          -- E = mx.gen_ai_spec.diagnostic 'ERROR',
+          -- W = mx.gen_ai_spec.diagnostic 'WARN',
           I = mx.gen_ai_spec.indent(),
           f = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function
           c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' }, -- class
