@@ -195,4 +195,34 @@ map({ 'n', 't' }, '<c-/>', function() Snacks.terminal.focus(nil, { cwd = project
 -- floating terminal
 -- map("n", "<leader>fT", function() Snacks.terminal() end, { desc = "Terminal (cwd)" })
 map({ 'n', 't' }, '<c-_>', function() Snacks.terminal.focus(nil, { cwd = project_root() }) end, { desc = 'which_key_ignore' })
-map("n", "<leader>ll", "<cmd>Lazy<cr>", { desc = "Lazy" })
+map('n', '<leader>ll', '<cmd>Lazy<cr>', { desc = 'Lazy' })
+
+map({ 'n', 'x' }, 'gn', function() vim.treesitter.select 'child' end, { desc = 'Treesitter Select Child' })
+map({ 'n', 'x' }, 'gN', function() vim.treesitter.select 'parent' end, { desc = 'Treesitter Select Parent' })
+
+-- Keep the built-in behaviour under aL / iL
+vim.keymap.set({ 'o', 'x' }, 'aL', 'al', { silent = true, desc = 'all lines (buffer)' })
+vim.keymap.set({ 'o', 'x' }, 'iL', 'il', { silent = true, desc = 'inner line (no whitespace)' })
+
+-- General
+vim.keymap.set('n', '<leader>p5', ':P5<CR>', { desc = 'Open p5.nvim picker' })
+
+-- Project
+vim.keymap.set('n', '<leader>pc', ':P5 create ', { desc = 'Create project' })
+vim.keymap.set('n', '<leader>ps', ':P5 setup<CR>', { desc = 'Setup project' })
+
+-- Server
+vim.keymap.set('n', '<leader>pss', ':P5 server<CR>', { desc = 'Toggle server' })
+vim.keymap.set('n', '<leader>psd', ':P5 cdp<CR>', { desc = 'Toggle CDP DevTools' })
+
+-- Libraries
+vim.keymap.set('n', '<leader>pi', ':P5 install ', { desc = 'Install library' })
+vim.keymap.set('n', '<leader>pu', ':P5 uninstall ', { desc = 'Uninstall library' })
+vim.keymap.set('n', '<leader>pU', ':P5 update<CR>', { desc = 'Update libraries' })
+
+-- Gist
+vim.keymap.set('n', '<leader>pg', ':P5 gist ', { desc = 'Create gist' })
+vim.keymap.set('n', '<leader>pgg', ':P5 gist sync<CR>', { desc = 'Sync gist' })
+
+-- Docs
+vim.keymap.set('n', '<leader>pd', ':P5 docs<CR>', { desc = 'Open p5.js docs' })

@@ -15,9 +15,9 @@ do
   --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
   vim.g.mapleader = ' '
   vim.g.maplocalleader = '\\'
-  vim.g.loaded_netrw = 1
   vim.o.termguicolors = true
-  vim.g.loaded_netrwPlugin = 1
+  vim.g.did_install_default_menus = 1
+  vim.g.loaded_nvim_zip_plugin = 1
   -- Set to true if you have a Nerd Font installed and selected in the terminal
   vim.g.have_nerd_font = true
   vim.g.autoformat = true
@@ -121,8 +121,8 @@ do
   -- See `:help 'confirm'`
   vim.o.confirm = true
 
--- if the completion engine supports the AI source,
--- use that instead of inline suggestions
+  -- if the completion engine supports the AI source,
+  -- use that instead of inline suggestions
   vim.g.ai_cmp = false
 
   vim.opt.laststatus = 3

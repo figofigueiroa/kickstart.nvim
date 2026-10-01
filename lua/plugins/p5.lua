@@ -34,6 +34,15 @@ return {
   },
   event = 'User P5Project',
   cmd = 'P5',
+  opts = {
+    server = {
+      auto_open_browser = false,
+    },
+    cdp = {
+      close_browser_on_close = true, -- Kill the CDP Chrome instance and remove its temp profile on close
+    },
+  },
+
   init = function()
     local fired = false
 

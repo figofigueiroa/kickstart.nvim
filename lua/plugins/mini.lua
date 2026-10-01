@@ -363,10 +363,10 @@ end
       return {
         n_lines = 500,
         mappings = {
-          around_next = 'aN', -- ou qualquer outra combinação livre
-          inside_next = 'iN',
-          around_last = 'aL',
-          inside_last = 'iL',
+          around_next = 'an', -- ou qualquer outra combinação livre
+          inside_next = 'in',
+          around_last = 'al',
+          inside_last = 'il',
         },
         custom_textobjects = {
           o = ai.gen_spec.treesitter { -- code block

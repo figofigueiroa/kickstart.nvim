@@ -48,12 +48,17 @@ require('lazier').setup('plugins', {
   performance = {
     rtp = {
       disabled_plugins = {
-        'gzip',
-        'tarPlugin',
-        'tohtml',
-        'tutor',
-        'zipPlugin',
-        'netrwPlugin',
+        "gzip",
+        "tarPlugin",
+        "zipPlugin",
+        "tohtml",          -- 2html_plugin
+        "tutor",           -- tutor_mode_plugin
+        "netrwPlugin",     -- netrw + netrwPlugin
+        "rplugin",         -- remote_plugins
+        "getscriptPlugin", -- getscript
+        "vimballPlugin",   -- vimball
+        "logipat",         -- logiPat
+        "rrhelper",
       },
     },
   },
