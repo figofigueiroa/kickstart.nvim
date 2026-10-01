@@ -5,7 +5,10 @@
 -- buffer de nota com o setup ativo) — fora das notas eles não existem e
 -- `<leader>o` continua sendo o grupo `[O]pencode` do spec global.
 local is_windows = vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1
-local vault = vim.fn.expand(is_windows and '~/vault' or '~/Documents/notes/vault')
+-- `vim.fs.normalize` expande `~` e, no Windows, troca `\` por `/`: em
+-- file-patterns de autocmd `\` é escape e `/` é o separador em qualquer
+-- sistema (docs `autocmd.txt`), então paths crus do Windows nunca casam.
+local vault = vim.fs.normalize(is_windows and '~/vault' or '~/Documents/notes/vault')
 
 return {
   'obsidian-nvim/obsidian.nvim',
@@ -16,15 +19,15 @@ return {
   },
   dependencies = { 'nvim-lua/plenary.nvim', 'folke/which-key.nvim' },
   config = function()
-    local cwd = vim.fn.getcwd()
-    local vault = is_windows and vim.fn.expand('~/vault'):gsub('/$', '') or vim.fn.expand('~/Documents/notes/vault'):gsub('/$', '')
+    -- `getcwd()` no Windows vem com `\`: normalizar para comparar com o vault.
+    local cwd = vim.fs.normalize(vim.fn.getcwd())
     if cwd == vault or cwd:sub(1, #vault + 1) == vault .. '/' then
       require('obsidian').setup {
         legacy_commands = false, -- this will be removed in 4.0.0
         workspaces = {
           {
             name = 'notas',
-            path = is_windows and '~/vault' or '~/Documents/notes/vault',
+            path = vault,
           },
         },
       }
