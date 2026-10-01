@@ -256,7 +256,8 @@ local servers = {
     },
   },
 
-  roslyn_ls = {},
+  -- Roslyn (C#/F#) não fica aqui: o LSP vem do easy-dotnet
+  -- (lua/plugins/easy-dotnet.lua), que usa o roslyn-language-server oficial.
 
   copilot = {
     settings = {
@@ -323,7 +324,6 @@ local ensure_installed = {
   'vtsls',
   'lua-language-server',
   'marksman',
-  -- 'roslyn-language-server',
   'tinymist',
   'jdtls',
   'copilot-language-server',
