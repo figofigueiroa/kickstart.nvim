@@ -79,9 +79,9 @@ return {
     ---@param on boolean
     local function apply_codelens(on)
       for _, client in ipairs(vim.lsp.get_clients { name = 'easy_dotnet' }) do
-        ---@type table
         local section = client.settings['csharp|code_lens']
         if type(section) ~= 'table' then section = {} end
+        ---@cast section table
         client.settings['csharp|code_lens'] = vim.tbl_deep_extend('force', section, {
           dotnet_enable_references_code_lens = on,
         })

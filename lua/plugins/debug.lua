@@ -108,11 +108,18 @@ return {
 
 
       require('dap-view').setup {
+        -- Abre a UI quando a sessão DAP começa e fecha quando a última
+        -- sessão termina
+        auto_toggle = true,
         winbar = {
           controls = {
             enabled = true,
             position = 'left',
           },
+          -- 'console' embute o terminal do debuggee (o runInTerminal que o
+          -- easy-dotnet pede ao nvim-dap) como aba da própria UI, ao lado do
+          -- REPL; sem essa seção o dap-view abre um split separado para ele
+          sections = { 'watches', 'scopes', 'exceptions', 'breakpoints', 'threads', 'repl', 'console' },
         },
       }
     end,

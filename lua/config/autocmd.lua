@@ -219,7 +219,11 @@ local function resolve_hl(name)
 end
 
 -- nvim_set_hl SUBSTITUI o grupo inteiro; isto mescla só o que você passar
-local function extend_hl(name, attrs) vim.api.nvim_set_hl(0, name, vim.tbl_deep_extend('force', resolve_hl(name), attrs)) end
+local function extend_hl(name, attrs)
+  local hl = vim.tbl_deep_extend('force', resolve_hl(name), attrs)
+  ---@cast hl vim.api.keyset.highlight
+  vim.api.nvim_set_hl(0, name, hl)
+end
 
 local function habamax_overrides()
   -- Fundo transparente, preservando o fg do habamax
@@ -231,6 +235,14 @@ local function habamax_overrides()
   vim.api.nvim_set_hl(0, 'TabLineSel', { link = 'PmenuSel' })
   vim.api.nvim_set_hl(0, 'TabLine', { link = 'StatusLineNC' })
   vim.api.nvim_set_hl(0, 'TabLineFill', { link = 'StatusLineNC' })
+
+  -- Diffs mais legíveis que os do habamax (#274733/#373737/#2f1f1a); o neogit
+  -- deriva os fundos dos diffs dele (line_green/line_red) do bg de
+  -- DiffAdd/DiffDelete, e o codediff linka direto nesses grupos.
+  vim.api.nvim_set_hl(0, 'DiffAdd', { bg = '#2e5c46', ctermbg = 22 })
+  vim.api.nvim_set_hl(0, 'DiffChange', { bg = '#39434f', ctermbg = 238 })
+  vim.api.nvim_set_hl(0, 'DiffDelete', { bg = '#462626', fg = '#d78787', ctermbg = 52, ctermfg = 138 })
+  vim.api.nvim_set_hl(0, 'DiffText', { bg = '#1c6a75', ctermbg = 30 })
 
   -- Keywords em negrito (gui e cterm)
   for _, group in ipairs(keyword_groups) do
