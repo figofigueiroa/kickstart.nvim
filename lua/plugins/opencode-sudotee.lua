@@ -17,25 +17,83 @@ local vault_session = in_vault(vim.fn.getcwd())
     return vim.fn.fnamemodify(path, ':e') == 'md' and in_vault(path)
   end)
 
+-- Editor keymaps at the lazy `keys` level: the handler stubs load the
+-- plugin on first press and which-key sees every entry from startup.
+-- `action` mirrors the plugin's own keymap resolution (opencode.commands
+-- build_parsed_intent + execute_parsed_intent); `nv` keeps parity with the
+-- editor default modes (n+v) the plugin applies to entries without a mode.
+local function action(name, args)
+  return function()
+    local c = require 'opencode.commands'
+    c.execute_parsed_intent(c.build_parsed_intent(name, args))
+  end
+end
+
+local nv = { 'n', 'v' }
+
+local keys = {
+  { '<leader>aa', action 'toggle', desc = 'Open opencode. Close if opened', mode = nv },
+  { '<leader>ai', action 'open_input', desc = 'Opens and focuses on input window on insert mode', mode = nv },
+  { '<leader>aI', action 'open_input_new_session', desc = 'Opens and focuses on input window on insert mode. Creates a new session', mode = nv },
+  { '<leader>ao', action 'open_output', desc = 'Opens and focuses on output window', mode = nv },
+  { '<leader>at', action 'toggle_focus', desc = 'Toggle focus between opencode and last window', mode = nv },
+  { '<leader>aT', action 'timeline', desc = 'Display timeline picker to navigate/undo/redo/fork sessions', mode = nv },
+  { '<leader>aq', action 'close', desc = 'Close UI windows', mode = nv },
+  { '<leader>as', action 'select_session', desc = 'Select and load a opencode session', mode = nv },
+  { '<leader>aR', action 'rename_session', desc = 'Rename session', mode = nv },
+  { '<leader>ap', action 'configure_provider', desc = 'Quick provider and model switch from predefined list', mode = nv },
+  { '<leader>aV', action 'configure_variant', desc = 'Switch model variant for current model', mode = nv },
+  { '<leader>ay', action 'add_visual_selection', desc = 'Add visual selection to context', mode = 'v' },
+  { '<leader>aY', action 'add_visual_selection_inline', desc = 'Insert visual selection as inline code block in the input buffer', mode = 'v' },
+  { '<leader>az', action 'toggle_zoom', desc = 'Zoom in/out on the Opencode panes', mode = nv },
+  { '<leader>av', action 'paste_image', desc = 'Paste image from clipboard into current session', mode = nv },
+  { '<leader>ad', action 'diff_open', desc = 'Opens a diff tab of a modified file since the last opencode prompt', mode = nv },
+  { '<leader>a]', action 'diff_next', desc = 'Navigate to next file diff', mode = nv },
+  { '<leader>a[', action 'diff_prev', desc = 'Navigate to previous file diff', mode = nv },
+  { '<leader>ac', action 'diff_close', desc = 'Close diff view tab and return to normal editing', mode = nv },
+  { '<leader>ara', action 'diff_revert_all_last_prompt', desc = 'Revert all file changes since the last opencode prompt', mode = nv },
+  { '<leader>art', action 'diff_revert_this_last_prompt', desc = 'Revert current file changes since the last opencode prompt', mode = nv },
+  { '<leader>arA', action 'diff_revert_all', desc = 'Revert all file changes since the last opencode session', mode = nv },
+  { '<leader>arT', action 'diff_revert_this', desc = 'Revert current file changes since the last opencode session', mode = nv },
+  { '<leader>arr', action 'diff_restore_snapshot_file', desc = 'Restore a file to a restore point', mode = nv },
+  { '<leader>arR', action 'diff_restore_snapshot_all', desc = 'Restore all files to a restore point', mode = nv },
+  { '<leader>ax', action 'swap_position', desc = 'Swap Opencode pane left/right', mode = nv },
+  { '<leader>att', action 'toggle_tool_output', desc = 'Toggle tool output (diffs, cmd output, etc.)', mode = nv },
+  { '<leader>atr', action 'toggle_reasoning_output', desc = 'Toggle reasoning output (thinking steps)', mode = nv },
+  {
+    '<leader>a/',
+    action 'quick_chat',
+    desc = 'Open quick chat input with selection context in visual mode or current line context in normal mode',
+    mode = { 'n', 'x' },
+  },
+}
+
 -- Vault note buffers opened later in a coding session can't unload the
--- plugin, so every global keymap of its resolved config gets a buffer-local
--- `<nop>` shadow: the key does nothing there and the `hidden` flag removes
--- the entry from the which-key tree in that buffer only.
+-- plugin, so every keymap of the `keys` table gets a buffer-local `<nop>`
+-- shadow: the key does nothing there and the `hidden` flag removes the
+-- entry from the which-key tree in that buffer only.
 local shadows_applied = {}
 local function disable_in_vault(buf)
   if shadows_applied[buf] then return end
   shadows_applied[buf] = true
   local spec = {}
-  for lhs, entry in pairs(require('opencode.config').keymap.editor) do
-    if entry ~= false then spec[#spec + 1] = { lhs, '<nop>', mode = { 'n', 'v' }, buffer = buf, hidden = true, desc = 'opencode (vault)' } end
+  for _, k in ipairs(keys) do
+    spec[#spec + 1] = { k[1], '<nop>', mode = { 'n', 'v' }, buffer = buf, hidden = true, desc = 'opencode (vault)' }
   end
   require('which-key').add(spec)
 end
 
 return {
   'sudo-tee/opencode.nvim',
-  enabled = not is_windows and not vault_session,
+  -- `enabled` must be a function: lazier serializes the resolved specs into
+  -- a startup cache, and a session-computed boolean would bake the verdict
+  -- of whichever session last rebuilt it (a coding session leaks the agent
+  -- into later vault sessions and vice versa). Functions become fragments
+  -- that re-require this module, recomputing the gate from the current
+  -- session's cwd/argv.
+  enabled = function() return not is_windows and not vault_session end,
   event = { 'BufReadPre', 'BufNewFile' },
+  keys = keys,
   dependencies = {
     -- render-markdown powers the tool output windows (its own spec lives in
     -- lua/plugins/render-markdown.lua)
@@ -51,39 +109,9 @@ return {
     preferred_picker = 'snacks',
     preferred_completion = 'blink',
     default_mode = 'plan',
-    keymap = {
-      editor = {
-        ['<leader>aa'] = { 'toggle' }, -- Open opencode. Close if opened
-        ['<leader>ai'] = { 'open_input' }, -- Opens and focuses on input window on insert mode
-        ['<leader>aI'] = { 'open_input_new_session' }, -- Opens and focuses on input window on insert mode. Creates a new session
-        ['<leader>ao'] = { 'open_output' }, -- Opens and focuses on output window
-        ['<leader>at'] = { 'toggle_focus' }, -- Toggle focus between opencode and last window
-        ['<leader>aT'] = { 'timeline' }, -- Display timeline picker to navigate/undo/redo/fork messages
-        ['<leader>aq'] = { 'close' }, -- Close UI windows
-        ['<leader>as'] = { 'select_session' }, -- Select and load a opencode session
-        ['<leader>aR'] = { 'rename_session' }, -- Rename current session
-        ['<leader>ap'] = { 'configure_provider' }, -- Quick provider and model switch from predefined list
-        ['<leader>aV'] = { 'configure_variant' }, -- Switch model variant for the current model
-        ['<leader>ay'] = { 'add_visual_selection', mode = { 'v' } },
-        ['<leader>aY'] = { 'add_visual_selection_inline', mode = { 'v' } }, -- Insert visual selection as inline code block in the input buffer
-        ['<leader>az'] = { 'toggle_zoom' }, -- Zoom in/out on the Opencode windows
-        ['<leader>av'] = { 'paste_image' }, -- Paste image from clipboard into current session
-        ['<leader>ad'] = { 'diff_open' }, -- Opens a diff tab of a modified file since the last opencode prompt
-        ['<leader>a]'] = { 'diff_next' }, -- Navigate to next file diff
-        ['<leader>a['] = { 'diff_prev' }, -- Navigate to previous file diff
-        ['<leader>ac'] = { 'diff_close' }, -- Close diff view tab and return to normal editing
-        ['<leader>ara'] = { 'diff_revert_all_last_prompt' }, -- Revert all file changes since the last opencode prompt
-        ['<leader>art'] = { 'diff_revert_this_last_prompt' }, -- Revert current file changes since the last opencode prompt
-        ['<leader>arA'] = { 'diff_revert_all' }, -- Revert all file changes since the last opencode session
-        ['<leader>arT'] = { 'diff_revert_this' }, -- Revert current file changes since the last opencode session
-        ['<leader>arr'] = { 'diff_restore_snapshot_file' }, -- Restore a file to a restore point
-        ['<leader>arR'] = { 'diff_restore_snapshot_all' }, -- Restore all files to a restore point
-        ['<leader>ax'] = { 'swap_position' }, -- Swap Opencode pane left/right
-        ['<leader>att'] = { 'toggle_tool_output' }, -- Toggle tools output (diffs, cmd output, etc.)
-        ['<leader>atr'] = { 'toggle_reasoning_output' }, -- Toggle reasoning output (thinking steps)
-        ['<leader>a/'] = { 'quick_chat', mode = { 'n', 'x' } }, -- Open quick chat input with selection context in visual mode or current line context in normal mode
-      },
-    },
+    -- Editor keymaps live in the `keys` table above; `false` also drops the
+    -- plugin's default `<leader>o*` editor maps (window keymaps stay).
+    default_global_keymaps = false,
   },
   config = function(_, opts)
     require('opencode').setup(opts)
