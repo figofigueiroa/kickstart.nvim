@@ -97,25 +97,11 @@ return {
     local function toggle_codelens()
       codelens_on = not codelens_on
       apply_codelens(codelens_on)
-      if #vim.lsp.get_clients { name = 'easy_dotnet' } == 0 then
-        vim.notify('Roslyn ainda não está ativo; o estado vale para quando anexar', vim.log.levels.WARN)
-      else
-        vim.notify('Code lens de referências: ' .. (codelens_on and 'ligado' or 'desligado'))
-      end
+      vim.notify('Code lens de referências: ' .. (codelens_on and 'ligado' or 'desligado'))
     end
 
     vim.api.nvim_create_user_command('DotnetCodelens', toggle_codelens, {
       desc = 'Alterna o code lens de referências do Roslyn (easy-dotnet)',
-    })
-
-    -- Roslyn que anexar depois (outra solution, restart do LSP) herda o
-    -- estado atual: o client novo nasce com o default (lens ligada).
-    vim.api.nvim_create_autocmd('LspAttach', {
-      group = vim.api.nvim_create_augroup('user-dotnet-codelens', { clear = true }),
-      callback = function(event)
-        local client = vim.lsp.get_client_by_id(event.data.client_id)
-        if client and client.name == 'easy_dotnet' and not codelens_on then apply_codelens(false) end
-      end,
     })
   end,
 }
