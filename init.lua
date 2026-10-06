@@ -6,8 +6,8 @@
 -- ============================================================
 local lazierpath = vim.fn.stdpath 'data' .. '/lazier/lazier.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazierpath) then
-  local lazyrepo = 'https://github.com/jake-stewart/lazier.nvim.git'
-  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable-v2', lazyrepo, lazierpath }
+  local lazyrepo = 'https://github.com/figofigueiroa/lazier.nvim.git'
+  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=lazyvim-v2', lazyrepo, lazierpath }
   if vim.v.shell_error ~= 0 then
     vim.api.nvim_echo({
       { 'Failed to clone lazier.nvim:\n', 'ErrorMsg' },
