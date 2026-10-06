@@ -133,6 +133,7 @@ return {
   -- Picker keymaps
   -- ============================================================
   keys = {
+    { '<leader>,', function() Snacks.picker.buffers() end, desc = 'Buffers' },
     { '<leader>sh', function() Snacks.picker.help() end, desc = '[S]earch [H]elp' },
     { '<leader>sk', function() Snacks.picker.keymaps() end, desc = '[S]earch [K]eymaps' },
     { '<leader>sf', function() Snacks.picker.files() end, desc = '[S]earch [F]iles' },
@@ -143,9 +144,11 @@ return {
     { '<leader>sd', function() Snacks.picker.diagnostics() end, desc = '[S]earch [D]iagnostics' },
     { '<leader>sR', function() Snacks.picker.resume() end, desc = '[S]earch [R]esume' },
     { '<leader>s.', function() Snacks.picker.recent() end, desc = '[S]earch Recent Files ("." for repeat)' },
-    { '<leader>sc', function() Snacks.picker.commands() end, desc = '[S]earch [C]ommands' },
+    { '<leader>sc', function() Snacks.picker.commands() end, desc = '[S]earch [C]snackommands' },
+    { '<leader>.', function() Snacks.scratch() end, desc = 'Toggle Scratch Buffer' },
+    { '<leader>S', function() Snacks.scratch.select() end, desc = 'Select Scratch Buffer' },
     { '<leader>sp', function() Snacks.picker.projects() end, desc = 'Projects' },
-    { '<leader><leader>', function() Snacks.picker.buffers() end, desc = ' Find existing buffers' },
+    { '<leader><leader>', function() Snacks.picker.files() end, desc = ' Find files' },
     { '<leader>sm', function() Snacks.picker.marks() end, desc = '[S]earch [M]arks' },
     { '<leader>sl', function() Snacks.picker.loclist() end, desc = '[S]earch [L]ocation List' },
     { '<leader>sq', function() Snacks.picker.qflist() end, desc = '[S]earch [Q]uickfix List' },
