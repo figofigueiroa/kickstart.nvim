@@ -38,7 +38,7 @@ return {
     dependencies = {
       'L3MON4D3/LuaSnip',
       'rafamadriz/friendly-snippets',
-      -- 'fang2hou/blink-copilot',
+      'fang2hou/blink-copilot',
       'folke/lazydev.nvim',
     },
     opts = {
@@ -72,12 +72,18 @@ return {
       },
 
       sources = {
-        default = { 'lazydev', 'lsp', 'path', 'snippets' },
+        default = { 'lazydev', 'lsp', 'path', 'snippets', 'copilot' },
         providers = {
           lazydev = {
             name = 'LazyDev',
             module = 'lazydev.integrations.blink',
             score_offset = 100, -- above lsp, for require("...") completions
+          },
+          copilot = {
+            name = 'copilot',
+            module = 'blink-copilot',
+            score_offset = 100,
+            async = true,
           },
         },
       },
