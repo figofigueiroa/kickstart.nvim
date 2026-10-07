@@ -38,7 +38,7 @@ return {
     dependencies = {
       'L3MON4D3/LuaSnip',
       'rafamadriz/friendly-snippets',
-      -- 'fang2hou/blink-copilot',
+      'fang2hou/blink-copilot',
       'folke/lazydev.nvim',
     },
     opts = {
@@ -47,14 +47,14 @@ return {
 
         ['<Tab>'] = {
           'snippet_forward', -- 1. placeholder do LuaSnip
-          function() -- 2. Next Edit Suggestion do sidekick
-            local ok, nes = pcall(require, 'sidekick.nes')
-            if ok and nes.have() and (nes.jump() or nes.apply()) then return true end
+          function() -- 2. aplica a Next Edit Suggestion do copilot-lsp
+            if vim.b[vim.api.nvim_get_current_buf()].nes_state then
+              require('blink.cmp').hide()
+              return require('copilot-lsp.nes').apply_pending_nes()
+                and require('copilot-lsp.nes').walk_cursor_end_edit()
+            end
           end,
-          function() -- 3. aceita a inline suggestion do copilot (= LazyVim ai_accept)
-            if vim.lsp.inline_completion.get() then return true end
-          end,
-          'fallback', -- 4. Tab normal
+          'fallback', -- 3. Tab normal
         },
         ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
       },
@@ -72,12 +72,18 @@ return {
       },
 
       sources = {
-        default = { 'lazydev', 'lsp', 'path', 'snippets' },
+        default = { 'lazydev', 'lsp', 'path', 'snippets', 'copilot' },
         providers = {
           lazydev = {
             name = 'LazyDev',
             module = 'lazydev.integrations.blink',
             score_offset = 100, -- above lsp, for require("...") completions
+          },
+          copilot = {
+            name = 'copilot',
+            module = 'blink-copilot',
+            score_offset = 100,
+            async = true,
           },
         },
       },

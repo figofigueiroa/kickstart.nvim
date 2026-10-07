@@ -123,7 +123,7 @@ do
 
   -- if the completion engine supports the AI source,
   -- use that instead of inline suggestions
-  vim.g.ai_cmp = false
+  vim.g.ai_cmp = true
 
   vim.opt.laststatus = 3
   vim.opt.linebreak = true

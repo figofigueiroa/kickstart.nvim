@@ -112,12 +112,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
         'File [R]eferences'
       )
     end
-    -- if client.name == 'copilot' and client:supports_method('textDocument/inlineCompletion', event.buf) then
-    --   vim.lsp.inline_completion.enable(true, { bufnr = event.buf })
-    --
-    --   map('<M-]>', function() vim.lsp.inline_completion.select { count = 1 } end, 'Next Copilot Suggestion', { 'i', 'n' })
-    --   map('<M-[>', function() vim.lsp.inline_completion.select { count = -1 } end, 'Prev Copilot Suggestion', { 'i', 'n' })
-    -- end
 
     -- ========================================================
     -- Inlay hints
@@ -258,35 +252,8 @@ local servers = {
 
   -- Roslyn (C#/F#) não fica aqui: o LSP vem do easy-dotnet
   -- (lua/plugins/easy-dotnet.lua), que usa o roslyn-language-server oficial.
-
-  -- copilot = {
-  --   settings = {
-  --     telemetry = {
-  --       telemetryLevel = 'off',
-  --     },
-  --   },
-  --   handlers = {
-  --     -- Equivalente ao handler do LazyVim: avisa se o login expirou/não existe
-  --     didChangeStatus = function(err, res, _ctx)
-  --       if err then return end
-  --       if res.status == 'Error' then vim.notify('Copilot: use `:LspCopilotSignIn` para fazer login', vim.log.levels.ERROR) end
-  --     end,
-  --   },
-  --   keys = {
-  --     {
-  --       '<M-]>',
-  --       function() vim.lsp.inline_completion.select { count = 1 } end,
-  --       desc = 'Next Copilot Suggestion',
-  --       mode = { 'i', 'n' },
-  --     },
-  --     {
-  --       '<M-[>',
-  --       function() vim.lsp.inline_completion.select { count = -1 } end,
-  --       desc = 'Prev Copilot Suggestion',
-  --       mode = { 'i', 'n' },
-  --     },
-  --   },
-  -- },
+  -- Copilot LSP também não fica aqui: plugins/copilot-lsp.lua traz
+  -- e habilita sua própria config (lsp/copilot_ls.lua).
 
   tinymist = {
     single_file_support = true, -- Fixes LSP attachment in non-Git directories
@@ -326,7 +293,7 @@ local ensure_installed = {
   'marksman',
   'tinymist',
   'jdtls',
-  -- 'copilot-language-server',
+  'copilot-language-server', -- binário nativo usado pelo copilot-lsp (plugins/copilot-lsp.lua)
   -- formatters / linters
   'stylua',
   'markdownlint-cli2',

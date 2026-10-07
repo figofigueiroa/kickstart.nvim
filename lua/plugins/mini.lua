@@ -189,20 +189,25 @@ statusline.section_project_filename = function(args)
 end
 
       -- ==========================================================
-      -- Mode colors: insert -> roxo pastel, visual -> amarelo,
-      -- v-block -> verde claro (mini links them to the theme's
-      -- diff groups by default). mini.statusline (re)creates its
-      -- default groups on every ColorScheme with `default = true`,
-      -- so these plain sets win, but a colorscheme switch wipes
-      -- them — re-applied in the ColorScheme autocmd below.
+      -- Mode colors — paleta habamax, portada de um tema lualine:
+      -- normal azul, insert verde, visual magenta, v-block cyan (a
+      -- única cor do tema sem papel), replace vermelho, command
+      -- amarelo. mini.statusline (re)creates its default groups on
+      -- every ColorScheme with `default = true`, so these plain
+      -- sets win, but a colorscheme switch wipes them — re-applied
+      -- in the ColorScheme autocmd below.
       -- ==========================================================
       local function define_mode_hl()
-        -- fg escuro (bg do habamax) para o bloco ler como preenchimento pastel
-        vim.api.nvim_set_hl(0, 'MiniStatuslineModeInsert', { fg = '#1c1c1c', bg = '#c8a8e8' })
-        vim.api.nvim_set_hl(0, 'MiniStatuslineModeVisual', { fg = '#1c1c1c', bg = '#ffe066' })
-        vim.api.nvim_set_hl(0, 'MiniStatuslineModeVBlock', { fg = '#1c1c1c', bg = '#87d787' })
-        vim.api.nvim_set_hl(0, 'MiniStatuslineModeOther', { fg = '#1c1c1c', bg = '#e39e6f' })
-        vim.api.nvim_set_hl(0, 'MiniStatuslineFilename', { fg = '#1c1c1c', bg = '#e6daf0' })
+        local dark = '#1c1c1c' -- bg do habamax: o bloco lê como preenchimento
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeNormal', { fg = dark, bg = '#4d94db', bold = true })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeInsert', { fg = dark, bg = '#65b865', bold = true })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeVisual', { fg = dark, bg = '#c75fc7', bold = true })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeVBlock', { fg = dark, bg = '#71c7c7', bold = true })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeReplace', { fg = dark, bg = '#d75f5f', bold = true })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeCommand', { fg = dark, bg = '#f0a75d', bold = true })
+        -- Modos desconhecidos e filename: neutros (bg_mid do tema)
+        vim.api.nvim_set_hl(0, 'MiniStatuslineModeOther', { fg = '#bcbcbc', bg = '#444444' })
+        vim.api.nvim_set_hl(0, 'MiniStatuslineFilename', { fg = '#bcbcbc', bg = '#444444' })
       end
 
       -- Na tabela de modos do mini, `^V` (V-Block) compartilha
